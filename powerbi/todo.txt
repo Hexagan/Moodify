@@ -1,1 +1,8 @@
-.
+- Instalar Power BI Desktop ✓ 
+- Investigar conexión PostgreSQL -> Power BI ✓ 
+- Definir métricas a mostrar
+- Crear dashboard de emociones
+- Crear dashboard de géneros musicales
+- Crear dashboard de popularidad
+- Probar actualización automática de datos
+- Exportar dashboard para presentación
