@@ -1,0 +1,9 @@
+- Definir requisitos funcionales
+- Definir requisitos no funcionales
+- Crear manual de usuario
+- Crear documentación técnica
+- Documentar endpoints de la API
+- Documentar estructura de base de datos
+- Preparar presentación final
+- Agregar capturas del sistema
+- Elaborar casos de prueba
