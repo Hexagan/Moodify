@@ -1,0 +1,41 @@
+.chart-card{
+
+background:#101126;
+
+border-radius:20px;
+
+padding:24px;
+
+border:1px solid #24264d;
+
+}
+
+.chart-header{
+
+margin-bottom:18px;
+
+}
+
+.chart-header h4{
+
+font-size:28px;
+
+font-weight:700;
+
+margin-bottom:4px;
+
+}
+
+.chart-header span{
+
+color:#8085aa;
+
+font-size:14px;
+
+}
+
+.chart-content{
+
+min-height:260px;
+
+}
