@@ -1,0 +1,236 @@
+Consultas SQL Moodify
+
+1. Verificar cantidad de canciones (Debería devolver aproximadamente 113549)
+
+SELECT COUNT(*) AS total_canciones
+FROM songs;
+
+
+2. Ver las primeras 10 canciones
+SELECT *
+FROM songs
+LIMIT 10;
+
+
+3. Verificar si quedaron campos nulos (Deberían dar 0)
+SELECT
+COUNT(*) FILTER (WHERE track_name IS NULL) AS canciones_sin_nombre,
+COUNT(*) FILTER (WHERE artists IS NULL) AS canciones_sin_artista,
+COUNT(*) FILTER (WHERE album_name IS NULL) AS albumes_nulos
+FROM songs;
+
+
+4. Verificar géneros disponibles
+SELECT DISTINCT track_genre
+FROM songs
+ORDER BY track_genre;
+
+
+5. Cantidad de canciones por género (para un gráfico) Se encontró que el organizador del dataset filtró hasta 1000 canciones por género, cuidado al utilizar o buscar otro dataset
+SELECT
+track_genre,
+COUNT(*) AS cantidad
+FROM songs
+GROUP BY track_genre
+ORDER BY cantidad DESC;
+
+
+6. Top 10 canciones más populares
+SELECT *
+FROM (
+    SELECT DISTINCT ON (track_id)
+        track_name,
+        artists,
+        popularity,
+        track_genre
+    FROM songs
+    ORDER BY track_id, popularity DESC
+) AS canciones
+ORDER BY popularity DESC
+LIMIT 10;
+
+
+7. Top 10 artistas con más canciones
+SELECT
+artists,
+COUNT(*) AS canciones
+FROM songs
+GROUP BY artists
+ORDER BY canciones DESC
+LIMIT 10;
+
+
+8. Promedios generales (KPIs del Dashboard)
+SELECT
+
+COUNT(*) AS total_canciones,
+
+ROUND(AVG(popularity),2) AS popularidad_media,
+
+ROUND(AVG(valence),2) AS valencia_media,
+
+ROUND(AVG(energy),2) AS energia_media,
+
+ROUND(AVG(loudness),2) AS loudness_promedio
+
+FROM songs;
+
+
+9. Loudness promedio por género
+SELECT
+
+track_genre,
+
+ROUND(AVG(loudness),2) AS loudness_promedio
+
+FROM songs
+
+GROUP BY track_genre
+
+ORDER BY loudness_promedio DESC;
+
+
+10. Valencia promedio por género
+SELECT
+
+track_genre,
+
+ROUND(AVG(valence),2) AS valencia
+
+FROM songs
+
+GROUP BY track_genre
+
+ORDER BY valencia DESC;
+
+
+11. Energía promedio por género
+SELECT
+
+track_genre,
+
+ROUND(AVG(energy),2) AS energia
+
+FROM songs
+
+GROUP BY track_genre
+
+ORDER BY energia DESC;
+
+
+12. Buscar canciones (como hará el catálogo)
+SELECT
+
+track_name,
+artists,
+track_genre
+
+FROM songs
+
+WHERE LOWER(track_name)
+
+LIKE LOWER('%love%')
+
+LIMIT 20;
+
+
+13. Buscar artista
+SELECT *
+
+FROM songs
+
+WHERE LOWER(artists)
+
+LIKE LOWER('%queen%');
+
+
+14. Canciones explícitas
+SELECT
+
+COUNT(*) AS canciones_explicitas
+
+FROM songs
+
+WHERE explicit = TRUE;
+
+
+15. Canciones más largas
+SELECT
+
+track_name,
+artists,
+duration_ms
+
+FROM songs
+
+ORDER BY duration_ms DESC
+
+LIMIT 10;
+
+
+16. Promedio de duración
+SELECT
+
+ROUND(AVG(duration_ms)/60000,2)
+
+AS duracion_promedio_minutos
+
+FROM songs;
+
+
+17. Distribución por modo musical
+SELECT
+
+mode,
+
+COUNT(*)
+
+FROM songs
+
+GROUP BY mode;
+
+
+18. Verificar duplicados de track_id (canciones con múltiples géneros aparecen varias veces)
+SELECT
+
+track_id,
+
+COUNT(*)
+
+FROM songs
+
+GROUP BY track_id
+
+HAVING COUNT(*) > 1;
+
+
+19. Géneros con mayor energía y valencia (útil para análisis psicológico)
+SELECT
+
+track_genre,
+
+ROUND(AVG(valence),2) AS valencia,
+
+ROUND(AVG(energy),2) AS energia
+
+FROM songs
+
+GROUP BY track_genre
+
+ORDER BY energia DESC, valencia DESC;
+
+
+20. Canciones para la tabla del Dashboard
+SELECT
+
+track_name,
+artists,
+track_genre,
+popularity
+
+FROM songs
+
+ORDER BY popularity DESC
+
+LIMIT 10;
+;
