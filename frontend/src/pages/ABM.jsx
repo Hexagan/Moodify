@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 import Layout from "../components/layout/Layout";
 import "./ABM.css";
@@ -10,7 +11,18 @@ import EliminarCancion from "../components/abm/EliminarCancion";
 
 function ABM() {
 
+    const location = useLocation();
     const [activeTab, setActiveTab] = useState("nueva");
+    const [presetSong, setPresetSong] = useState(null);
+
+    useEffect(() => {
+        if (location.state?.tab) {
+            setActiveTab(location.state.tab);
+        }
+        if (location.state?.song) {
+            setPresetSong(location.state.song);
+        }
+    }, [location.state]);
 
     return (
 
@@ -21,7 +33,7 @@ function ABM() {
                 <TabSelector activeTab={activeTab} onTabChange={setActiveTab} />
 
                 {activeTab === "nueva" && <NuevaCancion />}
-                {activeTab === "modificar" && <ModificarCancion />}
+                {activeTab === "modificar" && <ModificarCancion presetSong={presetSong} />}
                 {activeTab === "eliminar" && <EliminarCancion />}
 
             </div>

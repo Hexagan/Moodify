@@ -74,30 +74,30 @@ function Sidebar() {
 
             <div className="menu-section">
 
-                <span className="section-title">
-                    SISTEMA
+            <span className="section-title">
+                SISTEMA
+            </span>
+
+            <nav className="sidebar-nav">
+
+                <span className="nav-item disabled">
+                    <BarChart />
+                    <span>Reportes</span>
                 </span>
 
-                <nav className="sidebar-nav">
+                <span className="nav-item disabled">
+                    <Gear />
+                    <span>Configuración</span>
+                </span>
 
-                    <NavLink to="/reportes" className="nav-item">
-                        <BarChart />
-                        <span>Reportes</span>
-                    </NavLink>
+                <span className="nav-item disabled">
+                    <BoxArrowRight />
+                    <span>Cerrar sesión</span>
+                </span>
 
-                    <NavLink to="/configuracion" className="nav-item">
-                        <Gear />
-                        <span>Configuración</span>
-                    </NavLink>
+            </nav>
 
-                    <NavLink to="/logout" className="nav-item">
-                        <BoxArrowRight />
-                        <span>Cerrar sesión</span>
-                    </NavLink>
-
-                </nav>
-
-            </div>
+        </div>
 
         </aside>
     );

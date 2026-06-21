@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import Layout from "../components/layout/Layout";
 
 import "./Dashboard.css";
@@ -7,6 +8,9 @@ import ChartCard from "../components/dashboard/ChartCard";
 import RecentSongsTable from "../components/dashboard/RecentSongsTable";
 import GenreDistributionChart from "../components/dashboard/GenreDistributionChart";
 import CatalogGrowthChart from "../components/dashboard/CatalogGrowthChart";
+import StarRating from "../components/common/StarRating";
+
+import { getKpis } from "../services/api";
 
 import {
     MusicNoteBeamed,
@@ -16,6 +20,15 @@ import {
 } from "react-bootstrap-icons";
 
 function Dashboard() {
+
+    const [kpis, setKpis] = useState(null);
+
+    useEffect(() => {
+        getKpis()
+            .then(setKpis)
+            .catch((err) => console.error("Error al cargar KPIs:", err));
+    }, []);
+
     return (
         <Layout title="Dashboard">
 
@@ -25,26 +38,27 @@ function Dashboard() {
 
                     <KpiCard
                         icon={<MusicNoteBeamed />}
-                        value="482"
+                        value={kpis ? kpis.total_songs.toLocaleString() : "..."}
                         label="Canciones Totales"
                     />
 
                     <KpiCard
                         icon={<EmojiSmile />}
-                        value="0.64"
+                        value={kpis ? kpis.avg_valence : "..."}
                         label="Valencia media"
                     />
 
                     <KpiCard
                         icon={<LightningCharge />}
-                        value="0.71"
+                        value={kpis ? kpis.avg_energy : "..."}
                         label="Energía promedio"
                     />
 
                     <KpiCard
                         icon={<Star />}
-                        value="58.3"
+                        value={kpis ? kpis.avg_popularity : "..."}
                         label="Popularidad media"
+                        extra={kpis && <StarRating value={kpis.avg_popularity} />}
                     />
 
                 </div>
@@ -56,12 +70,9 @@ function Dashboard() {
                         subtitle="Nuevas canciones agregadas por mes"
                     >
                         <CatalogGrowthChart/>
-
                     </ChartCard>
 
-                    <ChartCard
-                        title="Diez Canciones Aleatorias"
-                    >
+                    <ChartCard title="Diez Canciones Aleatorias">
                         <RecentSongsTable />
                     </ChartCard>
 

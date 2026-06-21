@@ -4,6 +4,8 @@ import GenreBadge from "./GenreBadge";
 import StatusBadge from "./StatusBadge";
 import EditButton from "./EditButton";
 import { StarFill, Star } from "react-bootstrap-icons";
+import { useNavigate } from "react-router-dom";
+import StarRating from "../../common/StarRating";
 
 function getValenceClass(value) {
     if (value >= 0.6) return "valence-high";
@@ -11,23 +13,14 @@ function getValenceClass(value) {
     return "valence-low";
 }
 
-function StarRating({ value }) {
-
-    const stars = Math.round((value / 100) * 5);
-
-    return (
-        <div className="star-rating">
-            {Array.from({ length: 5 }, (_, i) => (
-                i < stars
-                    ? <StarFill key={i} />
-                    : <Star key={i} />
-            ))}
-        </div>
-    );
-}
-
 function SongRow({ song }) {
 
+    const navigate = useNavigate();
+    
+    function handleEdit() {
+        navigate("/abm", { state: { tab: "modificar", song } });
+    }
+    
     return (
 
         <div className="song-row">
@@ -57,7 +50,7 @@ function SongRow({ song }) {
 
             <StatusBadge status={song.status}/>
 
-            <EditButton/>
+            <EditButton onClick={handleEdit}/>
 
         </div>
 

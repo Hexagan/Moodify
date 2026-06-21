@@ -1,0 +1,17 @@
+.star-rating{
+
+    display:flex;
+
+    gap:2px;
+
+    color:#f0b429;
+
+    font-size:11px;
+
+}
+
+.star-rating svg:nth-child(n){
+
+    color:inherit;
+
+}

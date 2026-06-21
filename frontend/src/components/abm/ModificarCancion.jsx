@@ -1,12 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SongSearchSelect from "./SongSearchSelect";
 import SongForm from "./SongForm";
 import { modificarCancion } from "../../services/api";
 
-function ModificarCancion() {
+function ModificarCancion({ presetSong }) {
 
     const [selectedSong, setSelectedSong] = useState(null);
     const [feedback, setFeedback] = useState(null);
+
+    useEffect(() => {
+        if (presetSong) {
+            setSelectedSong(presetSong);
+        }
+    }, [presetSong]);
 
     async function handleSubmit(payload) {
         try {
