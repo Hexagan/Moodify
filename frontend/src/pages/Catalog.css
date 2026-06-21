@@ -1,0 +1,38 @@
+.catalog-page{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
+
+.catalog-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.catalog-count{
+    color:#8f92b5;
+    font-size:18px;
+}
+
+.catalog-placeholder{
+
+    height:500px;
+
+    border-radius:18px;
+
+    border:1px solid #24264d;
+
+    background:#0f1126;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:#7377a6;
+
+    font-size:20px;
+
+}

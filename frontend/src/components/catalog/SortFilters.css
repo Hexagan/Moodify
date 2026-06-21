@@ -1,0 +1,44 @@
+.sort-filters{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+}
+
+.sort-button{
+    display:flex;
+    align-items:center;
+    gap:8px;
+
+    padding:8px 16px;
+
+    background:#12142b;
+    border:1px solid #24264d;
+    border-radius:10px;
+
+    color:#8d90b5;
+    font-size:14px;
+    font-weight:600;
+
+    cursor:pointer;
+    transition:.2s;
+}
+
+.sort-button svg{
+    font-size:14px;
+}
+
+.sort-button:hover{
+    background:#1b1d36;
+    border-color:#34376b;
+    color:white;
+}
+
+.sort-button:active{
+    background:#24264d;
+}
+
+.sort-button.active{
+    background:#7c5cff;
+    border-color:#7c5cff;
+    color:white;
+}

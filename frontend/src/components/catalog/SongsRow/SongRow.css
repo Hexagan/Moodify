@@ -1,0 +1,142 @@
+.song-row{
+
+    display:grid;
+
+    width:100%;
+
+    grid-template-columns:
+        2.5fr
+        1fr
+        .9fr
+        .9fr
+        1fr
+        .9fr
+        1fr
+        60px;
+
+    align-items:center;
+
+    padding:18px 22px;
+
+    border-top:1px solid #1d203d;
+
+    box-sizing:border-box;
+
+}
+
+.song-row:hover{
+
+    background:#14172d;
+
+}
+
+.song-info{
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:flex-start;
+
+    text-align:left;
+
+}
+
+.song-info h4{
+
+    margin:0;
+
+    text-align:left;
+
+    font-size:16px;
+
+    font-weight:600;
+
+}
+
+.song-info span{
+
+    margin-top:4px;
+
+    text-align:left;
+
+    color:#8b8daa;
+
+    font-size:13px;
+
+}
+
+.song-row>span{
+
+    color:white;
+
+    font-size:15px;
+
+    justify-self:center;
+
+}
+
+.valence-badge{
+
+    display:inline-block;
+
+    padding:4px 10px;
+
+    border-radius:12px;
+
+    font-size:13px;
+
+    font-weight:600;
+
+    justify-self:center;
+
+}
+
+.valence-high{
+    background:#1b7a4d;
+    color:#7ef0b0;
+}
+
+.valence-mid{
+    background:#7a6a1b;
+    color:#f0d97e;
+}
+
+.valence-low{
+    background:#7a1b2c;
+    color:#f08e9c;
+}
+
+.popularity-cell{
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    gap:4px;
+
+    justify-self:center;
+
+}
+
+.star-rating{
+
+    display:flex;
+
+    gap:2px;
+
+    color:#f0b429;
+
+    font-size:11px;
+
+}
+
+.star-rating svg:nth-child(n){
+
+    color:inherit;
+
+}

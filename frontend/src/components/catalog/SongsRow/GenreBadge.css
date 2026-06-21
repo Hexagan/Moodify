@@ -1,0 +1,81 @@
+.genre-badge{
+
+    width:fit-content;
+
+    white-space:nowrap;
+
+    display:inline-flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:6px 14px;
+
+    border-radius:999px;
+
+    font-size:14px;
+
+    font-weight:600;
+
+    color:white;
+
+    justify-self:center;
+
+}
+
+/* Colores */
+
+.genre-pop{
+
+    background:#FF4FA3;
+
+}
+
+.genre-rock{
+
+    background:#7A5AF8;
+
+}
+
+.genre-jazz{
+
+    background:#2CB67D;
+
+}
+
+.genre-edm{
+
+    background:#00B5D8;
+
+}
+
+.genre-acoustic{
+
+    background:#D97706;
+
+}
+
+.genre-hiphop{
+
+    background:#6366F1;
+
+}
+
+.genre-classic{
+
+    background:#4B5563;
+
+}
+
+.genre-electronic{
+
+    background:#06B6D4;
+
+}
+
+.genre-default{
+
+    background:#5B6078;
+
+}

@@ -6,7 +6,10 @@ import './App.css'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Dashboard from "./pages/Dashboard";
-import Catalogo from "./pages/Catalogo";
+import Catalog from "./pages/Catalog";
+import Analysis from "./pages/Analysis";
+import BioImpact from "./pages/BioImpact";
+
 
 function App() {
     return (
@@ -21,7 +24,17 @@ function App() {
 
                 <Route
                     path="/catalogo"
-                    element={<Catalogo />}
+                    element={<Catalog />}
+                />
+
+                <Route
+                    path="/analisis"
+                    element={<Analysis />}
+                />
+
+                <Route
+                    path="/bioimpacto"
+                    element={<BioImpact />}
                 />
 
             </Routes>

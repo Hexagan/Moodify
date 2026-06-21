@@ -1,0 +1,33 @@
+.insight-banner{
+    display:flex;
+    align-items:center;
+    gap:18px;
+
+    background:#15172e;
+    border:1px solid #6d3dff;
+    border-radius:16px;
+    padding:22px;
+}
+
+.insight-icon{
+    width:46px;
+    height:46px;
+    flex-shrink:0;
+
+    border-radius:50%;
+    background:#1f1745;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    color:#a93dff;
+    font-size:20px;
+}
+
+.insight-banner p{
+    margin:0;
+    color:#d8d9ec;
+    font-size:15px;
+    line-height:1.5;
+}

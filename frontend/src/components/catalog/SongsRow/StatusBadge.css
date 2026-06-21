@@ -1,0 +1,73 @@
+.status-badge{
+
+    width:fit-content;
+
+    white-space:nowrap;
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    padding:6px 14px;
+
+    border-radius:999px;
+
+    font-size:14px;
+
+    font-weight:600;
+
+    color:white;
+
+    justify-self:center;
+
+}
+
+.status-dot{
+
+    width:8px;
+
+    height:8px;
+
+    border-radius:50%;
+
+    background:white;
+
+}
+
+.status-relax{
+
+    background:#2563EB;
+
+}
+
+.status-energy{
+
+    background:#F59E0B;
+
+}
+
+.status-happy{
+
+    background:#22C55E;
+
+}
+
+.status-mixed{
+
+    background:#6B7280;
+
+}
+
+.status-tense{
+
+    background:#EF4444;
+
+}
+
+.status-default{
+
+    background:#5B6078;
+
+}

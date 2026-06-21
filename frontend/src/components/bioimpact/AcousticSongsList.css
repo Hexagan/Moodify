@@ -1,0 +1,44 @@
+.acoustic-songs-list{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin-top:6px;
+}
+
+.acoustic-song-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    padding:16px 18px;
+
+    background:#15172e;
+    border:1px solid #24264d;
+    border-radius:14px;
+
+    transition:.2s;
+}
+
+.acoustic-song-row:hover{
+    border-color:#8b5cf6;
+}
+
+.acoustic-song-info h4{
+    margin:0;
+    font-size:18px;
+    font-weight:700;
+}
+
+.acoustic-song-info span{
+    display:block;
+    margin-top:4px;
+    color:#8b8daa;
+    font-size:13px;
+}
+
+.acoustic-song-value{
+    font-size:18px;
+    font-weight:700;
+    color:white;
+    flex-shrink:0;
+}

@@ -1,3 +1,4 @@
+import logo from "../../assets/logo-noBG.png";
 import "./Sidebar.css";
 
 import {
@@ -18,7 +19,7 @@ function Sidebar() {
         <aside className="sidebar">
 
             <div className="logo">
-                Moodify
+                <img src={logo} alt="Logo" className="logo-image" />
             </div>
 
             <div className="user-card">
@@ -57,7 +58,7 @@ function Sidebar() {
                         <span>Análisis</span>
                     </NavLink>
 
-                    <NavLink to="/bio" className="nav-item">
+                    <NavLink to="/bioimpacto" className="nav-item">
                         <Flower1 />
                         <span>Bio-impacto</span>
                     </NavLink>

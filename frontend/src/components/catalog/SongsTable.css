@@ -1,0 +1,56 @@
+.songs-table{
+
+    border:1px solid #24264d;
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+    background:#0f1126;
+
+}
+
+.table-header{
+
+    display:grid;
+    
+    justify-items:center;
+
+    grid-template-columns:
+
+        2.5fr
+        1fr
+        .9fr
+        .9fr
+        1fr
+        .9fr
+        1fr
+        60px;
+
+    padding:18px 22px;
+
+    background:#12142b;
+
+    color:#8d90b5;
+
+    font-size:14px;
+
+    font-weight:600;
+
+}
+
+.table-header > :first-child{
+
+    justify-self:start;
+
+}
+
+.table-body{
+
+    display:flex;
+
+    flex-direction:column;
+
+    width:100%;
+
+}

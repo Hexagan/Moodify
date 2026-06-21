@@ -11,19 +11,24 @@
 }
 
 .dashboard-grid{
-
     display:grid;
-
     grid-template-columns:1.35fr 1fr;
-
+    grid-template-areas:
+        "growth recent"
+        "genre  recent";
     gap:24px;
-
     align-items:start;
-
 }
 
-.dashboard-grid > :last-child{
-
-    grid-column:1;
-
+.dashboard-grid > :nth-child(1){
+    grid-area:growth;
 }
+
+.dashboard-grid > :nth-child(2){
+    grid-area:recent;
+}
+
+.dashboard-grid > :nth-child(3){
+    grid-area:genre;
+}
+

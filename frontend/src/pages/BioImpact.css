@@ -1,0 +1,18 @@
+.bioimpact-page{
+    display:flex;
+    flex-direction:column;
+    gap:24px;
+}
+
+.bioimpact-grid{
+    display:grid;
+    grid-template-columns:1.35fr 1fr;
+    gap:24px;
+    align-items:start;
+}
+
+.bioimpact-left{
+    display:flex;
+    flex-direction:column;
+    gap:24px;
+}

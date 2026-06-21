@@ -51,13 +51,6 @@ genre:"Metal",
 valence:"0.19",
 energy:"0.97"
 },
-{
-title:"Enter Sandman",
-artist:"Metallica",
-genre:"Metal",
-valence:"0.19",
-energy:"0.97"
-}
 ];
 
 function RecentSongs(){
@@ -72,7 +65,7 @@ return(
 
 <tr>
 
-<th>Canción</th>
+<th>Canción / Artista</th>
 
 <th>Género</th>
 

@@ -5,7 +5,8 @@ import "./Dashboard.css";
 import KpiCard from "../components/dashboard/KpiCard";
 import ChartCard from "../components/dashboard/ChartCard";
 import RecentSongsTable from "../components/dashboard/RecentSongsTable";
-import GenreDistributionCard from "../components/dashboard/GenreDistributionCard";
+import GenreDistributionChart from "../components/dashboard/GenreDistributionChart";
+import CatalogGrowthChart from "../components/dashboard/CatalogGrowthChart";
 
 import {
     MusicNoteBeamed,
@@ -54,9 +55,8 @@ function Dashboard() {
                         title="Crecimiento del catálogo"
                         subtitle="Nuevas canciones agregadas por mes"
                     >
-                        <div className="fake-chart">
-                            Aquí irá Recharts
-                        </div>
+                        <CatalogGrowthChart/>
+
                     </ChartCard>
 
                     <ChartCard
@@ -69,7 +69,7 @@ function Dashboard() {
                         title="Distribución por género"
                         subtitle="% del catálogo"
                     >
-                        <GenreDistributionCard />
+                        <GenreDistributionChart />
                     </ChartCard>
 
                 </div>

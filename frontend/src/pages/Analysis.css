@@ -1,0 +1,11 @@
+.analysis-page{
+    display:flex;
+    flex-direction:column;
+    gap:28px;
+}
+
+.analysis-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:24px;
+}
