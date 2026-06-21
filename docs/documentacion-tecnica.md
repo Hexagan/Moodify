@@ -242,6 +242,56 @@ npm run build
 | `recharts` | ^3.8.1 | Gráficos interactivos |
 | `bootstrap` | ^5.3.8 | Estilos y componentes visuales |
 | `axios` | ^1.18.0 | Peticiones HTTP al backend |
+| `@vercel/analytics` | ^2.0.1 | Analytics para Vercel |
+
+### 5.5 Recharts — Visualización de Gráficos
+
+**Recharts** es una librería de componentes gráficos built on React que permite crear visualizaciones interactivas sin dependencias de D3.js. Se utiliza en Moodify para renderizar todos los gráficos estadísticos del sistema.
+
+#### Componentes utilizados
+
+| Componente | Ubicación | Datos | Descripción |
+|-----------|-----------|-------|-------------|
+| `BarChart` | Analysis, BioImpact | `/stats/genre-distribution`, `/stats/loudness-by-genre` | Gráficos de barras para comparar métricas por género |
+| `PieChart` | Analysis | `/stats/explicit-content` | Distribución porcentual de contenido explícito |
+| `LineChart` | Dashboard | `/stats/top-genres` | Evolución y tendencias en datos |
+| `ScatterChart` | Analysis | `/stats/psych-map` | Mapa psicológico: valencia vs. energía por género |
+| `ResponsiveContainer` | Todos | (wrapper) | Contenedor responsive que escala gráficos al tamaño de pantalla |
+| `Tooltip` | Todos | (nativa) | Información detallada al pasar el ratón |
+| `Legend` | Todos | (nativa) | Leyenda de series de datos |
+
+#### Ejemplo de uso (Dashboard)
+
+```jsx
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+
+const GenreDistributionChart = ({ data }) => (
+  <ResponsiveContainer width="100%" height={300}>
+    <BarChart data={data}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="genre" />
+      <YAxis />
+      <Tooltip />
+      <Legend />
+      <Bar dataKey="popularity" fill="#8884d8" />
+      <Bar dataKey="energy" fill="#82ca9d" />
+    </BarChart>
+  </ResponsiveContainer>
+);
+```
+
+#### Customización de estilos
+
+Los gráficos usan colores definidos en `frontend/src/utils/genreColors.js`:
+- Colores específicos por género musical
+- Paleta consistente en toda la aplicación
+- Estilos en archivos `.css` correspondientes a cada componente
+
+#### Performance
+
+- **Renderizado eficiente:** Recharts utiliza virtualization para manejar grandes datasets
+- **Limitación de datos:** Los endpoints limitan resultados (ej: top 6 géneros) para optimizar
+- **Memoización:** Los componentes usan `React.memo()` para evitar re-renders innecesarios
 
 ---
 
@@ -346,6 +396,178 @@ LIMIT 10;
 ```
 
 ---
+
+## 7. Despliegue en Producción
+
+### 7.1 Despliegue del Frontend en Vercel
+
+**Vercel** es una plataforma de hosting especializada en aplicaciones React y Next.js que ofrece deploymento automático, SSL gratuito y CDN global.
+
+#### Ventajas de Vercel para Moodify
+
+- **Despliegue continuo:** Automático al hacer push a GitHub
+- **Almacenamiento en caché:** CDN global acelera carga en cualquier región
+- **Serverless Functions:** Posibilidad de backend sin servidor (futuro)
+- **Analytics integrados:** Seguimiento de rendimiento y uso
+- **SSL automático:** Certificado HTTPS gratuito y renovación automática
+- **Preview deployments:** Cada pull request genera una URL temporal para testing
+
+#### Pasos de despliegue
+
+1. **Conectar repositorio GitHub a Vercel:**
+   - Ir a https://vercel.com y crear cuenta (o usar GitHub login)
+   - Click en "New Project" → Seleccionar repositorio GitHub
+   - Vercel detecta automáticamente que es un proyecto Vite/React
+
+2. **Configurar variables de entorno:**
+   - En Vercel Dashboard → Settings → Environment Variables
+   - Agregar:
+     ```
+     VITE_API_BASE_URL=https://api-moodify.railway.app
+     ```
+   - (El backend URL dependerá de dónde se despliegue en Railway)
+
+3. **Configurar build settings:**
+   - Framework Preset: `Vite`
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+   - Install Command: `npm install`
+
+4. **Deploy automático:**
+   - Cada push a `main` dispara un build automático
+   - Si el build falla, Vercel no deploya
+   - Preview en cada pull request antes de merge
+
+#### Verificación post-despliegue
+
+```bash
+# Vercel asigna una URL como: https://moodify-fe.vercel.app
+# Abre en navegador y verifica:
+# ✅ Dashboard carga con gráficos
+# ✅ Catálogo muestra tabla de canciones
+# ✅ No hay errores en DevTools Console (F12)
+# ✅ Network tab muestra llamadas exitosas al backend API
+```
+
+#### Rollback en caso de error
+
+```bash
+# En Vercel Dashboard → Deployments
+# Click en deployment anterior (verde)
+# Click en "Promote to Production"
+```
+
+### 7.2 Despliegue del Backend en Railway
+
+**Railway** es una plataforma moderna para desplegar backends que simplifica la gestión de bases de datos, variables de entorno y servidores.
+
+#### Ventajas de Railway para Moodify
+
+- **Base de datos PostgreSQL integrada:** Creación con un click
+- **Variables de entorno seguras:** Manejo automático de secrets
+- **Despliegue desde GitHub:** CI/CD automático
+- **Monitoreo y logs:** Panel integrado
+- **Plan gratuito generoso:** $5/mes de crédito (suficiente para desarrollo)
+- **Escalabilidad:** Upgrade automático según demanda
+
+#### Pasos de despliegue
+
+1. **Crear proyecto en Railway:**
+   - Ir a https://railway.app
+   - Sign up con GitHub
+   - Click en "Create New Project"
+   - Seleccionar "Deploy from GitHub repo"
+   - Autorizar GitHub y seleccionar repositorio Moodify
+
+2. **Crear base de datos PostgreSQL:**
+   - En Railway Dashboard → Add Service → PostgreSQL
+   - Railway crea automáticamente la BD vacía
+   - Copiar connection string (DATABASE_URL)
+
+3. **Configurar el servicio Backend:**
+   - Click en repositorio en Dashboard
+   - Variables de entorno (Settings → Variables):
+     ```
+     DATABASE_URL=postgresql://user:password@host:5432/moodify
+     RAILWAY_ENVIRONMENT=production
+     ```
+   - Root Directory: `backend` (si está en subfolder)
+   - Build Command: `pip install -r requirements.txt`
+   - Start Command: `gunicorn -w 4 -b 0.0.0.0:8000 main:app`
+
+4. **Cargar datos iniciales en PostgreSQL de Railway:**
+   ```bash
+   # Obtener connection string de Railway Dashboard
+   # Reemplazar en el comando:
+   psql postgresql://user:password@host:5432/moodify < database/moodify.backup
+   
+   # O si prefieres desde Python:
+   python -c "from database import SessionLocal; db = SessionLocal(); print('✅ Conectado')"
+   ```
+
+5. **Configurar CORS en backend para Vercel:**
+   - En `backend/main.py`, agregar URL de Vercel a `allow_origins`:
+   ```python
+   app.add_middleware(
+       CORSMiddleware,
+       allow_origins=[
+           "http://localhost:5173",
+           "http://localhost:3000",
+           "https://moodify-fe.vercel.app",  # URL de Vercel
+       ],
+       allow_credentials=True,
+       allow_methods=["*"],
+       allow_headers=["*"],
+   )
+   ```
+
+#### URLs después del despliegue
+
+| Servicio | URL | Ejemplo |
+|----------|-----|----------|
+| Frontend | vercel.app | `https://moodify-fe.vercel.app` |
+| Backend API | railway.app | `https://api-moodify.railway.app` |
+| API Docs | railway.app/docs | `https://api-moodify.railway.app/docs` |
+| DB PostgreSQL | railway.app (conexión) | `postgresql://...@gateway.railway.app:5432/moodify` |
+
+#### Verificación post-despliegue
+
+```bash
+# Verificar API en producción
+curl https://api-moodify.railway.app/canciones
+
+# Verificar docs de Swagger
+# Abre en navegador: https://api-moodify.railway.app/docs
+
+# En el frontend, verifica que los gráficos cargan datos reales
+# (DevTools Network tab debe mostrar llamadas exitosas)
+```
+
+#### Monitoreo en Railway
+
+- **Logs:** Dashboard → Logs tab muestra errores y requests
+- **Métricas:** CPU, memoria, conexiones a BD
+- **Alertas:** Configurable para downtime o errores frecuentes
+
+#### Rollback en caso de error
+
+```bash
+# En Railway Dashboard → Deployments
+# Seleccionar deployment anterior
+# Click en "Redeploy"
+```
+
+### 7.3 Pipeline de despliegue completo
+
+**Workflow recomendado:**
+
+1. Desarrollo local (localhost:5173 + localhost:8000)
+2. Push a rama `develop`
+3. Vercel + Railway crean preview deployments
+4. Testing manual en URLs de preview
+5. Merge a `main`
+6. Despliegue automático a producción
+7. Monitoreo en Vercel + Railway dashboards
 
 ---
 
