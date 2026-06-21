@@ -246,52 +246,63 @@ npm run build
 
 ### 5.5 Recharts — Visualización de Gráficos
 
-**Recharts** es una librería de componentes gráficos built on React que permite crear visualizaciones interactivas sin dependencias de D3.js. Se utiliza en Moodify para renderizar todos los gráficos estadísticos del sistema.
+**Recharts** es la librería de visualización utilizada en Moodify para renderizar gráficos estadísticos e interactivos integrados en React. Todos los gráficos son responsivos y adaptativos.
 
-#### Componentes utilizados
+#### Componentes de Visualización Implementados
 
-| Componente | Ubicación | Datos | Descripción |
-|-----------|-----------|-------|-------------|
-| `BarChart` | Analysis, BioImpact | `/stats/genre-distribution`, `/stats/loudness-by-genre` | Gráficos de barras para comparar métricas por género |
-| `PieChart` | Analysis | `/stats/explicit-content` | Distribución porcentual de contenido explícito |
-| `LineChart` | Dashboard | `/stats/top-genres` | Evolución y tendencias en datos |
-| `ScatterChart` | Analysis | `/stats/psych-map` | Mapa psicológico: valencia vs. energía por género |
-| `ResponsiveContainer` | Todos | (wrapper) | Contenedor responsive que escala gráficos al tamaño de pantalla |
-| `Tooltip` | Todos | (nativa) | Información detallada al pasar el ratón |
-| `Legend` | Todos | (nativa) | Leyenda de series de datos |
+El sistema cuenta con **7 gráficos interactivos** distribuidos en sus diferentes módulos:
 
-#### Ejemplo de uso (Dashboard)
+| Componente del Sistema | Tipo de Gráfico | Endpoint del Backend | Descripción / Propósito |
+|-----------------------|-----------------|----------------------|-------------------------|
+| `GenreDistributionChart` | `BarChart` (Horizontal) | `/stats/genre-distribution` | Distribución porcentual de popularidad acumulada por género en el Dashboard. |
+| `CatalogGrowthChart` | `LineChart` | *Datos Locales (Enero-Junio)* | Crecimiento mensual de canciones registradas en el Dashboard. |
+| `PsychMap` | `ScatterChart` | `/stats/psych-map` | Mapa psicológico de emociones (Valencia vs. Energía) por género en Análisis. |
+| `TopGenresChart` | `BarChart` (Horizontal) | `/stats/top-genres` | Top 6 géneros más populares en promedio dentro de la sección de Análisis. |
+| `ExplicitContentChart` | `BarChart` (Horizontal) | `/stats/explicit-content` | Porcentaje de canciones con contenido explícito por género en Análisis. |
+| `LoudnessChart` | `BarChart` (Horizontal) | `/stats/loudness-by-genre` | Volumen promedio en decibelios (dB) por género en la sección de Análisis. |
+| `AcousticChart` | `BarChart` (Vertical Personalizado) | `/stats/acoustic-index` | Índice de acousticness (%) por género en la sección de BioImpacto. |
+
+#### Detalles de Implementación Técnica
+
+1. **Gráfico de Dispersión Emocional (PsychMap):**
+   - **Ejes:** Eje X representa la Valencia Emocional (0-100%) y el Eje X la Energía (0-100%).
+   - **Cuadrantes Psicológicos:** Utiliza componentes `<ReferenceArea>` traslúcidos para dividir el plano cartesiano en cuatro cuadrantes según la media de valencia y energía (`avg_valence` y `avg_energy`) calculadas dinámicamente por la API:
+     - **Rojo (Intensa):** Valencia baja, Energía alta.
+     - **Amarillo (Energética):** Valencia alta, Energía alta.
+     - **Verde (Relajante):** Valencia baja, Energía baja.
+     - **Azul (Melancólica):** Valencia alta, Energía baja.
+   - **Nodos Personalizados (`CustomDot`):** Dibuja círculos de colores correspondientes al cuadrante del género junto con su respectiva etiqueta de texto para mejorar la legibilidad.
+
+2. **Personalización del LoudnessChart:**
+   - **Rango Negativo:** El eje X se configura con `domain={["dataMin", 0]}` para manejar correctamente los valores negativos de decibelios.
+   - **Etiqueta Personalizada (`DbLabel`):** Dibuja el texto del valor formateado como `X dB` desplazado dinámicamente a la derecha del final de la barra.
+
+3. **Gráfico Lollipop en AcousticChart:**
+   - **Forma Personalizada (`TreeBar`):** Utiliza un componente SVG personalizado que renderiza un diseño estilo "piruleta" o lollipop, compuesto por una línea de tallo roja (`#ff4d4d`) de 4px de grosor y una esfera verde (`#33d17a`) con radio de 9px en el extremo superior.
+
+4. **Estilo y Tooltips Unificados:**
+   - Se importan estilos compartidos de tooltips (`tooltipContentStyle`, `tooltipItemStyle`, `tooltipLabelStyle` de `src/styles/tooltipStyle.js`) para mantener coherencia estética (fondos oscuros, bordes redondeados y tipografía unificada).
+   - Componentes envueltos en `<ResponsiveContainer>` para garantizar adaptabilidad móvil y redimensionamiento dinámico.
+
+#### Ejemplo de Configuración de Componente (AcousticChart)
 
 ```jsx
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
+import { getAcousticIndex } from "../../services/api";
 
-const GenreDistributionChart = ({ data }) => (
-  <ResponsiveContainer width="100%" height={300}>
-    <BarChart data={data}>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="genre" />
-      <YAxis />
-      <Tooltip />
-      <Legend />
-      <Bar dataKey="popularity" fill="#8884d8" />
-      <Bar dataKey="energy" fill="#82ca9d" />
-    </BarChart>
-  </ResponsiveContainer>
-);
+const TreeBar = (props) => {
+    const { x, y, width, height } = props;
+    const cx = x + width / 2;
+    return (
+        <g>
+            <line x1={cx} y1={y + height} x2={cx} y2={y} stroke="#ff4d4d" strokeWidth={4} strokeLinecap="round" />
+            <circle cx={cx} cy={y} r={9} fill="#33d17a" stroke="#0f1126" strokeWidth={2} />
+        </g>
+    );
+};
+
+// ... Renderizado con <Bar dataKey="value" shape={<TreeBar />} />
 ```
-
-#### Customización de estilos
-
-Los gráficos usan colores definidos en `frontend/src/utils/genreColors.js`:
-- Colores específicos por género musical
-- Paleta consistente en toda la aplicación
-- Estilos en archivos `.css` correspondientes a cada componente
-
-#### Performance
-
-- **Renderizado eficiente:** Recharts utiliza virtualization para manejar grandes datasets
-- **Limitación de datos:** Los endpoints limitan resultados (ej: top 6 géneros) para optimizar
-- **Memoización:** Los componentes usan `React.memo()` para evitar re-renders innecesarios
 
 ---
 
@@ -423,9 +434,9 @@ LIMIT 10;
    - En Vercel Dashboard → Settings → Environment Variables
    - Agregar:
      ```
-     VITE_API_BASE_URL=https://api-moodify.railway.app
+     VITE_API_URL=https://api-moodify.railway.app
      ```
-   - (El backend URL dependerá de dónde se despliegue en Railway)
+   - *(Nota: Se debe usar VITE_API_URL tal como está configurado en frontend/src/services/api.js. La URL del backend dependerá del dominio provisto por Railway)*
 
 3. **Configurar build settings:**
    - Framework Preset: `Vite`
@@ -441,11 +452,11 @@ LIMIT 10;
 #### Verificación post-despliegue
 
 ```bash
-# Vercel asigna una URL como: https://moodify-fe.vercel.app
+# Vercel asigna una URL final como: https://moodify-one-rho.vercel.app
 # Abre en navegador y verifica:
 # ✅ Dashboard carga con gráficos
-# ✅ Catálogo muestra tabla de canciones
-# ✅ No hay errores en DevTools Console (F12)
+# ✅ Catálogo muestra tabla de canciones y permite buscar/filtrar
+# ✅ No hay errores de CORS en DevTools Console (F12)
 # ✅ Network tab muestra llamadas exitosas al backend API
 ```
 
@@ -481,17 +492,16 @@ LIMIT 10;
 
 2. **Crear base de datos PostgreSQL:**
    - En Railway Dashboard → Add Service → PostgreSQL
-   - Railway crea automáticamente la BD vacía
-   - Copiar connection string (DATABASE_URL)
+   - Railway crea automáticamente la BD vacía y provee una variable `DATABASE_URL` autogenerada
 
 3. **Configurar el servicio Backend:**
    - Click en repositorio en Dashboard
    - Variables de entorno (Settings → Variables):
      ```
-     DATABASE_URL=postgresql://user:password@host:5432/moodify
+     DATABASE_URL=postgresql://user:password@host:5432/moodify (provisto automáticamente por Railway)
      RAILWAY_ENVIRONMENT=production
      ```
-   - Root Directory: `backend` (si está en subfolder)
+   - Root Directory: `backend` (configurado en Settings → Root Directory)
    - Build Command: `pip install -r requirements.txt`
    - Start Command: `gunicorn -w 4 -b 0.0.0.0:8000 main:app`
 
@@ -506,14 +516,13 @@ LIMIT 10;
    ```
 
 5. **Configurar CORS en backend para Vercel:**
-   - En `backend/main.py`, agregar URL de Vercel a `allow_origins`:
+   - En `backend/main.py`, la URL oficial de producción de Vercel debe estar en `allow_origins`:
    ```python
    app.add_middleware(
        CORSMiddleware,
        allow_origins=[
            "http://localhost:5173",
-           "http://localhost:3000",
-           "https://moodify-fe.vercel.app",  # URL de Vercel
+           "https://moodify-one-rho.vercel.app",  # URL de producción en Vercel
        ],
        allow_credentials=True,
        allow_methods=["*"],
@@ -525,7 +534,7 @@ LIMIT 10;
 
 | Servicio | URL | Ejemplo |
 |----------|-----|----------|
-| Frontend | vercel.app | `https://moodify-fe.vercel.app` |
+| Frontend | vercel.app | `https://moodify-one-rho.vercel.app` |
 | Backend API | railway.app | `https://api-moodify.railway.app` |
 | API Docs | railway.app/docs | `https://api-moodify.railway.app/docs` |
 | DB PostgreSQL | railway.app (conexión) | `postgresql://...@gateway.railway.app:5432/moodify` |
@@ -643,7 +652,7 @@ Ver [`docs/casos-prueba.md`](./casos-prueba.md) para la lista completa de casos 
 1. Conectar repositorio GitHub a Vercel.
 2. Configurar variables de entorno:
    ```
-   VITE_API_BASE_URL=https://api.tudominio.com
+   VITE_API_URL=https://api.tudominio.com
    ```
 3. Build command: `npm run build`
 4. Output directory: `dist`

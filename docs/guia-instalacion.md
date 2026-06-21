@@ -516,33 +516,33 @@ vercel
 
 ### 10.3 Configurar variables de entorno en Vercel
 
-Este es el paso **CRTICO** para conectar el frontend con el backend en Railway.
+Este es el paso **CRÍTICO** para conectar el frontend con el backend en Railway.
 
 1. En Vercel Dashboard → Seleccionar proyecto → Settings
 2. Tab "Environment Variables"
 3. Agregar nueva variable:
-   - **Name:** `VITE_API_BASE_URL`
+   - **Name:** `VITE_API_URL`
    - **Value:** `https://api-moodify.railway.app` (o la URL de tu backend en Railway)
    - **Environments:** Seleccionar "Production", "Preview", "Development"
 4. Click "Save"
 5. **Redeploy** desde Deployments tab para aplicar cambios
 
-**Nota:** Si despliegas el backend en Railway primero, obtendrás la URL. Si no, usa un placeholder y actualiza después.
+**Nota:** Se debe usar exactamente `VITE_API_URL` para que coincida con `import.meta.env.VITE_API_URL` configurado en `frontend/src/services/api.js`. Si despliegas el backend en Railway primero, obtendrás la URL. Si no, usa un placeholder y actualiza después.
 
 ### 10.4 Verificación del despliegue
 
-Después del deploy, Vercel te muestra una URL como: `https://moodify-fe.vercel.app`
+Después del deploy, Vercel te muestra una URL final como: `https://moodify-one-rho.vercel.app`
 
 ```bash
 # Verificar que la app carga
-curl -I https://moodify-fe.vercel.app
+curl -I https://moodify-one-rho.vercel.app
 # Debe devolver: HTTP/1.1 200 OK
 
 # Abrir en navegador y revisar:
 # ✅ Página carga sin errores
-# ✅ Dashboard muestra gráficos
-# ✅ DevTools (F12) → Console: sin errores rojos
-# ✅ DevTools → Network: llamadas a API status 200
+# ✅ Dashboard muestra gráficos interactivos con Recharts
+# ✅ DevTools (F12) → Console: sin errores rojos de CORS u otros
+# ✅ DevTools → Network: llamadas a API status 200 (datos reales del backend)
 ```
 
 ### 10.5 Configurar despliegue automático
@@ -553,7 +553,7 @@ Vercel monitorea tu repositorio GitHub automáticamente:
 - **Push a otra rama:** Crea preview deployment (URL temporal)
 - **Pull Request:** Genera URL de preview para testing antes de merge
 
-**Para desabilitar despliegues automáticos:**
+**Para deshabilitar despliegues automáticos:**
 - Settings → Git → Ignored Build Step
 
 ### 10.6 Troubleshooting Vercel
@@ -561,9 +561,9 @@ Vercel monitorea tu repositorio GitHub automáticamente:
 | Problema | Causa | Solución |
 |----------|-------|----------|
 | Build falla con "Module not found" | `package.json` tiene dependencias faltantes | Ejecutar `npm install` localmente, commitear `package-lock.json` |
-| App carga pero API devuelve 404 | `VITE_API_BASE_URL` está mal configurada | Revisar variable en Vercel Settings |
+| App carga pero API devuelve 404 o falla | `VITE_API_URL` está mal configurada o no cargada | Revisar variable en Vercel Settings y redeployar la app |
 | CORS error en navegador | Backend no tiene Vercel en `allow_origins` | Actualizar backend CORS (ver sección 11) |
-| Logs no se actualizan | Cáche de CDN | Ir a Settings → Git → Redeploy from Cache → desabilitar |
+| Logs no se actualizan | Caché de CDN | Ir a Settings → Git → Redeploy from Cache → deshabilitar |
 
 ---
 
@@ -642,7 +642,7 @@ railway up
    ```
    DATABASE_URL=postgresql://user:password@host:5432/moodify
    RAILWAY_ENVIRONMENT=production
-   FRONTEND_URL=https://moodify-fe.vercel.app
+   FRONTEND_URL=https://moodify-one-rho.vercel.app
    ```
 3. Click "Apply"
 
@@ -686,8 +686,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "http://localhost:3000",
-        "https://moodify-fe.vercel.app",  # URL frontend en Vercel
+        "https://moodify-one-rho.vercel.app",  # URL oficial de producción en Vercel
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -698,26 +697,26 @@ app.add_middleware(
 **Commit y push:**
 ```bash
 git add backend/main.py
-git commit -m "Update CORS for production URLs"
+git commit -m "Update CORS for production Vercel URL"
 git push
 ```
 
 Railway detectará el cambio y redeploya automáticamente.
 
-### 11.8 Verificación del despliegue
+### 11.8 Verificación del despliegue del Backend
 
-Railway asigna una URL como: `https://moodify-backend-prod.railway.app`
+Railway asigna una URL como: `https://api-moodify.railway.app`
 
 ```bash
 # Verificar que el backend responde
 curl https://api-moodify.railway.app/docs
-# Debería devolver el HTML de Swagger
+# Debería devolver el HTML de la documentación interactiva de Swagger
 
 # Probar endpoint de canciones
 curl https://api-moodify.railway.app/canciones
-# Debería devolver JSON con canciones
+# Debería devolver JSON con las canciones
 
-# Abre en navegador para verificar Swagger UI
+# Abre en tu navegador para verificar Swagger UI
 # https://api-moodify.railway.app/docs
 ```
 
@@ -725,43 +724,40 @@ curl https://api-moodify.railway.app/canciones
 
 **Railway Dashboard ofrece:**
 
-- **Logs:** Todos los errores y requests se registran
-- **Métricas:** CPU, memoria, tiempo de respuesta
-- **Health checks:** Status del servicio
-- **Rollback:** Volver a deployment anterior con un click
+- **Logs:** Todos los errores y solicitudes HTTP se registran en tiempo real en la pestaña Logs.
+- **Métricas:** Uso de CPU, memoria RAM, tiempo de respuesta y cantidad de conexiones concurrentes.
+- **Health checks:** Monitoreo automático del estado de salud del contenedor del backend.
+- **Rollback:** Capacidad de revertir a una versión anterior estable en caso de fallos con un solo click.
 
-**Verificar logs en caso de error:**
+**Verificar logs desde terminal:**
 ```bash
-# Desde CLI
+# Si usas Railway CLI
 railway logs
-
-# O en Dashboard: service → Logs tab
 ```
 
 ### 11.10 Troubleshooting Railway
 
 | Problema | Causa | Solución |
 |----------|-------|----------|
-| Build falla | `requirements.txt` incompleto o dependencias incompatibles | Ejecutar `pip freeze > requirements.txt` localmente |
-| "ModuleNotFoundError" en logs | Importación incorrecta en main.py | Revisar que `from fastapi import FastAPI` existe |
-| BD no conecta | DATABASE_URL mal configurada | Copiar directamente desde Railway Variables |
-| Port mismatch error | puerto incorrecto en Start Command | Verificar que es puerto `8000` |
-| CORS error en frontend | Backend no tiene URL de Vercel en `allow_origins` | Actualizar main.py y hacer push |
+| Build falla en Railway | Dependencias faltantes en `requirements.txt` | Ejecutar `pip freeze > requirements.txt` localmente y subir los cambios |
+| "ModuleNotFoundError" | Importación incorrecta o ruta mal definida | Asegurarse de tener configurado `Root Directory: backend` en Settings de Railway |
+| BD no conecta | Variable `DATABASE_URL` incorrecta | Railway la inyecta automáticamente. Verifica que la variable esté en la pestaña de variables del backend |
+| Puerto incorrecto | El backend no escucha en el puerto de Railway | Asegurarse de que el start command sea `gunicorn -w 4 -b 0.0.0.0:8000 main:app` para que use el puerto configurado |
+| CORS error en frontend | Backend no permite la URL del frontend | Verificar que la URL `https://moodify-one-rho.vercel.app` está correctamente agregada en `allow_origins` de `backend/main.py` |
 
 ---
 
 ## 12. Verificación End-to-End (Producción)
 
-Despues de desplegar tanto frontend como backend:
+Después de haber desplegado con éxito tanto el frontend en Vercel como el backend en Railway:
 
 ```bash
-# 1. Abrir frontend en navegador
-https://moodify-fe.vercel.app
+# 1. Abrir el frontend en tu navegador
+https://moodify-one-rho.vercel.app
 
-# 2. Verificar que aparecen los datos
-# Ir a DevTools (F12)
-# Network tab: buscar llamadas a "https://api-moodify.railway.app"
-# Deben devolver status 200
+# 2. Verificar que se cargan los datos correctamente
+# Ir a Herramientas de Desarrollador (F12) -> pestaña Network (Red)
+# Las peticiones a "https://api-moodify.railway.app" deben responder con status 200
 
 # 3. Verificar que los gráficos cargan
 # Dashboard: KPIs visibles
