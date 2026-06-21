@@ -1,0 +1,5 @@
+1_Deben instalar estas herramientas en el visual studio code
+
+
+
+2_Cuando abran el database.py deben poner SU contraseña de PostgreSQL reemplazan la mia que es "TOLUKA1234567890"

@@ -1,42 +1,38 @@
 import "./SortFilters.css";
+import { ArrowDownUp, ArrowUp, ArrowDown } from "react-bootstrap-icons";
 
-import {
-    ArrowDownUp
-} from "react-bootstrap-icons";
+const filters = [
+    { label: "Valencia", value: "valencia" },
+    { label: "Energía", value: "energia" },
+    { label: "Popularidad", value: "popularidad" },
+    { label: "Duración", value: "duracion" }
+];
 
-function SortFilters(){
+function SortFilters({ sortBy, order, onSortClick }) {
 
-    const filters = [
-
-        "Valencia",
-        "Energía",
-        "Popularidad",
-        "Duración"
-
-    ];
-
-    return(
+    return (
 
         <div className="sort-filters">
 
-            {
+            {filters.map((filter) => {
 
-                filters.map((filter,index)=>(
+                const isActive = sortBy === filter.value;
 
+                return (
                     <button
-                        key={index}
-                        className="sort-button"
+                        key={filter.value}
+                        className={isActive ? "sort-button active" : "sort-button"}
+                        onClick={() => onSortClick(filter.value)}
                     >
-
-                        <ArrowDownUp/>
-
-                        {filter}
-
+                        {isActive
+                            ? (order === "asc" ? <ArrowUp /> : <ArrowDown />)
+                            : <ArrowDownUp />
+                        }
+                        {filter.label}
                     </button>
+                );
 
-                ))
-
-            }
+            })}
 
         </div>
 

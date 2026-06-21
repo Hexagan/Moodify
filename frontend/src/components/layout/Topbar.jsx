@@ -1,8 +1,7 @@
 import "./Topbar.css";
-
 import { Search } from "react-bootstrap-icons";
 
-function Topbar({ title }) {
+function Topbar({ title, searchValue, onSearchChange }) {
 
     return (
         <header className="topbar">
@@ -19,14 +18,14 @@ function Topbar({ title }) {
 
                     <input
                         placeholder="Buscar canciones"
+                        value={searchValue ?? ""}
+                        onChange={(e) => onSearchChange?.(e.target.value)}
                     />
 
                 </div>
 
                 <button className="add-button">
-
                     + Agregar canciones
-
                 </button>
 
             </div>

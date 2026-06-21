@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import "./AcousticChart.css";
 
 import {
@@ -10,15 +11,7 @@ import {
 } from "recharts";
 
 import { tooltipContentStyle, tooltipItemStyle, tooltipLabelStyle } from "../../styles/tooltipStyle";
-
-// TODO: replace with FastAPI fetch (GET /bioimpact/acoustic-index)
-const data = [
-    { genre: "Jazz", value: 58 },
-    { genre: "Rock-n-rol", value: 52 },
-    { genre: "Blues", value: 46 },
-    { genre: "Gospel", value: 38 },
-    { genre: "K-pop", value: 28 }
-];
+import { getAcousticIndex } from "../../services/api";
 
 const TreeBar = (props) => {
 
@@ -27,23 +20,8 @@ const TreeBar = (props) => {
 
     return (
         <g>
-            <line
-                x1={cx}
-                y1={y + height}
-                x2={cx}
-                y2={y}
-                stroke="#ff4d4d"
-                strokeWidth={4}
-                strokeLinecap="round"
-            />
-            <circle
-                cx={cx}
-                cy={y}
-                r={9}
-                fill="#33d17a"
-                stroke="#0f1126"
-                strokeWidth={2}
-            />
+            <line x1={cx} y1={y + height} x2={cx} y2={y} stroke="#ff4d4d" strokeWidth={4} strokeLinecap="round" />
+            <circle cx={cx} cy={y} r={9} fill="#33d17a" stroke="#0f1126" strokeWidth={2} />
         </g>
     );
 
@@ -51,17 +29,21 @@ const TreeBar = (props) => {
 
 function AcousticChart() {
 
+    const [data, setData] = useState([]);
+
+    useEffect(() => {
+        getAcousticIndex()
+            .then(setData)
+            .catch((err) => console.error("Error al cargar índice acústico:", err));
+    }, []);
+
     return (
 
         <div className="acoustic-chart">
 
             <ResponsiveContainer width="100%" height={260}>
 
-                <BarChart
-                    data={data}
-                    margin={{ top:20, right:20, left:0, bottom:5 }}
-                    barCategoryGap="35%"
-                >
+                <BarChart data={data} margin={{ top:20, right:20, left:0, bottom:5 }} barCategoryGap="35%">
 
                     <XAxis
                         dataKey="genre"
@@ -72,8 +54,7 @@ function AcousticChart() {
                     />
 
                     <YAxis
-                        domain={[0,60]}
-                        ticks={[0,10,20,30,40,50,60]}
+                        domain={[0,100]}
                         tickFormatter={(v) => `${v}%`}
                         axisLine={false}
                         tickLine={false}

@@ -1,16 +1,40 @@
+import { useState, useEffect, useRef } from "react";
 import "./GenreFilters.css";
-import { Funnel } from "react-bootstrap-icons";
+import { Funnel, Search } from "react-bootstrap-icons";
 
-const genres = [
-    "Todos",
-    "Pop",
-    "Rock",
-    "Jazz",
-    "EDM",
-    "Acústico"
-];
+import { getGeneros } from "../../services/api";
 
-function GenreFilters() {
+const QUICK_GENRES = ["todos", "pop", "rock", "jazz", "electronic", "blues"];
+
+function GenreFilters({ selectedGenre, onSelectGenre }) {
+
+    const [allGenres, setAllGenres] = useState([]);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [search, setSearch] = useState("");
+    const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        getGeneros()
+            .then(setAllGenres)
+            .catch((err) => console.error("Error al cargar géneros:", err));
+    }, []);
+
+    useEffect(() => {
+        function handleClickOutside(e) {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setDropdownOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const filteredGenres = allGenres.filter((g) =>
+        g.toLowerCase().includes(search.toLowerCase())
+    );
+
+    const isOverflowGenreActive =
+        selectedGenre !== "todos" && !QUICK_GENRES.includes(selectedGenre);
 
     return (
 
@@ -18,32 +42,61 @@ function GenreFilters() {
 
             <div className="genre-buttons">
 
-                {genres.map((genre, index) => (
-
+                {QUICK_GENRES.map((genre) => (
                     <button
                         key={genre}
-                        className={
-                            index === 0
-                                ? "genre-btn active"
-                                : "genre-btn"
-                        }
+                        className={genre === selectedGenre ? "genre-btn active" : "genre-btn"}
+                        onClick={() => onSelectGenre(genre)}
                     >
-
-                        {genre}
-
+                        {genre === "todos" ? "Todos" : genre}
                     </button>
-
                 ))}
 
             </div>
 
-            <button className="filter-btn">
+            <div className="filter-dropdown" ref={dropdownRef}>
 
-                <Funnel />
+                <button
+                    className={isOverflowGenreActive ? "filter-btn active" : "filter-btn"}
+                    onClick={() => setDropdownOpen((open) => !open)}
+                >
+                    <Funnel />
+                    {isOverflowGenreActive ? selectedGenre : "Más filtros"}
+                </button>
 
-                Más filtros
+                {dropdownOpen && (
+                    <div className="filter-dropdown-menu">
 
-            </button>
+                        <div className="filter-search">
+                            <Search />
+                            <input
+                                placeholder="Buscar género"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                autoFocus
+                            />
+                        </div>
+
+                        <div className="filter-dropdown-list">
+                            {filteredGenres.map((genre) => (
+                                <button
+                                    key={genre}
+                                    className={genre === selectedGenre ? "filter-option active" : "filter-option"}
+                                    onClick={() => {
+                                        onSelectGenre(genre);
+                                        setDropdownOpen(false);
+                                        setSearch("");
+                                    }}
+                                >
+                                    {genre}
+                                </button>
+                            ))}
+                        </div>
+
+                    </div>
+                )}
+
+            </div>
 
         </div>
 

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import "./LoudnessChart.css";
 
 import {
@@ -11,23 +12,7 @@ import {
 } from "recharts";
 
 import { tooltipContentStyle, tooltipItemStyle, tooltipLabelStyle } from "../../styles/tooltipStyle";
-
-<Tooltip
-    cursor={false}
-    contentStyle={tooltipContentStyle}
-    itemStyle={tooltipItemStyle}
-    labelStyle={tooltipLabelStyle}
-/>
-
-// TODO: replace with FastAPI fetch (GET /analytics/loudness-by-genre)
-const data = [
-    { genre: "EDM", db: -4.2 },
-    { genre: "Rock", db: -5.8 },
-    { genre: "Hip-hop", db: -7.1 },
-    { genre: "Pop", db: -8.4 },
-    { genre: "Jazz", db: -12.6 },
-    { genre: "Acústico", db: -16.3 }
-];
+import { getLoudnessByGenre } from "../../services/api";
 
 const colors = ["#a93dff", "#ff4d4d", "#33d1c0", "#ff3da0", "#a93dff", "#3ba9ff"];
 
@@ -49,6 +34,14 @@ const DbLabel = (props) => {
 };
 
 function LoudnessChart() {
+
+    const [data, setData] = useState([]);
+
+    useEffect(() => {
+        getLoudnessByGenre()
+            .then(setData)
+            .catch((err) => console.error("Error al cargar loudness por género:", err));
+    }, []);
 
     return (
 
@@ -82,7 +75,7 @@ function LoudnessChart() {
                     />
 
                     <Bar
-                        dataKey="db"
+                        dataKey="value"
                         radius={[8,8,8,8]}
                         barSize={10}
                         label={<DbLabel />}

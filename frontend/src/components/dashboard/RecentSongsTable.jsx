@@ -1,129 +1,71 @@
+import { useState, useEffect } from "react";
 import "./RecentSongsTable.css";
 import { ThreeDotsVertical } from "react-bootstrap-icons";
 
-const songs = [
-{
-title:"Blinding Lights",
-artist:"The Weeknd",
-genre:"Pop",
-valence:"0.83",
-energy:"0.80"
-},
-{
-title:"Hound Dog",
-artist:"Elvis Presley",
-genre:"Rock",
-valence:"0.87",
-energy:"0.79"
-},
-{
-title:"Hotel California",
-artist:"Eagles",
-genre:"Rock",
-valence:"0.50",
-energy:"0.42"
-},
-{
-title:"Enter Sandman",
-artist:"Metallica",
-genre:"Metal",
-valence:"0.19",
-energy:"0.97"
-},
-{
-title:"Enter Sandman",
-artist:"Metallica",
-genre:"Metal",
-valence:"0.19",
-energy:"0.97"
-},
-{
-title:"Enter Sandman",
-artist:"Metallica",
-genre:"Metal",
-valence:"0.19",
-energy:"0.97"
-},
-{
-title:"Enter Sandman",
-artist:"Metallica",
-genre:"Metal",
-valence:"0.19",
-energy:"0.97"
-},
-];
+import { getRandomCanciones } from "../../services/api";
+import { mapCancion } from "../../utils/mapCancion";
+import { getGenreColor } from "../../utils/genreColors";
 
-function RecentSongs(){
+function RecentSongs() {
 
-return(
+    const [songs, setSongs] = useState([]);
 
-<div className="recent-table">
+    useEffect(() => {
+        getRandomCanciones()
+            .then((data) => setSongs(data.map(mapCancion)))
+            .catch((err) => console.error("Error al cargar canciones recientes:", err));
+    }, []);
 
-<table>
+    return (
 
-<thead>
+        <div className="recent-table">
 
-<tr>
+            <table>
 
-<th>Canción / Artista</th>
+                <thead>
+                    <tr>
+                        <th>Canción / Artista</th>
+                        <th>Género</th>
+                        <th>Valencia</th>
+                        <th>Energía</th>
+                        <th></th>
+                    </tr>
+                </thead>
 
-<th>Género</th>
+                <tbody>
+                    {songs.map((song) => (
+                        <tr key={song.id}>
 
-<th>Valencia</th>
+                            <td>
+                                <div className="song-title">{song.title}</div>
+                                <div className="song-artist">{song.artist}</div>
+                            </td>
 
-<th>Energía</th>
+                            <td>
+                                <span
+                                    className="badge"
+                                    style={{ background: getGenreColor(song.genre) }}
+                                >
+                                    {song.genre}
+                                </span>
+                            </td>
 
-<th></th>
+                            <td>{song.valence}</td>
+                            <td>{song.energy}</td>
 
-</tr>
+                            <td>
+                                <ThreeDotsVertical />
+                            </td>
 
-</thead>
+                        </tr>
+                    ))}
+                </tbody>
 
-<tbody>
+            </table>
 
-{songs.map((song,index)=>(
+        </div>
 
-<tr key={index}>
-
-<td>
-
-<div className="song-title">{song.title}</div>
-
-<div className="song-artist">{song.artist}</div>
-
-</td>
-
-<td>
-
-<span className={`badge ${song.genre.toLowerCase()}`}>
-
-{song.genre}
-
-</span>
-
-</td>
-
-<td>{song.valence}</td>
-
-<td>{song.energy}</td>
-
-<td>
-
-<ThreeDotsVertical/>
-
-</td>
-
-</tr>
-
-))}
-
-</tbody>
-
-</table>
-
-</div>
-
-)
+    );
 
 }
 

@@ -35,18 +35,7 @@
     border-radius:12px;
     font-size:12px;
     font-weight:600;
-}
-
-.badge.pop{
-    background:#d7a400;
-}
-
-.badge.rock{
-    background:#d44747;
-}
-
-.badge.metal{
-    background:#6d6d73;
+    color:white;
 }
 
 .recent-table svg{

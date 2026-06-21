@@ -1,88 +1,53 @@
+import { useState, useEffect } from "react";
 import "./SongsTable.css";
 
 import SongRow from "./SongsRow/SongRow";
+import Pagination from "../common/Pagination";
 
-const songs = [
+import { getCancionesFull } from "../../services/api";
+import { mapCancion } from "../../utils/mapCancion";
+import { useDebounce } from "../../hooks/useDebounce";
 
-    {
-        id:1,
-        title:"Blinding Lights",
-        artist:"The Weeknd",
-        genre:"Pop",
-        valence:0.81,
-        energy:0.73,
-        popularity:95,
-        duration:"3:20",
-        status:"Enérgico"
-    },
+const PAGE_SIZE = 10;
 
-    {
-        id:2,
-        title:"Bohemian Rhapsody",
-        artist:"Queen",
-        genre:"Rock",
-        valence:0.49,
-        energy:0.82,
-        popularity:97,
-        duration:"5:54",
-        status:"Mixto"
-    },
+function SongsTable({ genero, busqueda, sortBy, order, currentPage, onPageChange, totalCount }) {
 
-    {
-        id:3,
-        title:"Take Five",
-        artist:"Dave Brubeck",
-        genre:"Jazz",
-        valence:0.63,
-        energy:0.42,
-        popularity:84,
-        duration:"5:24",
-        status:"Relajante"
-    }
+    const [songs, setSongs] = useState([]);
+    const debouncedBusqueda = useDebounce(busqueda, 300);
 
-];
+    const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
-function SongsTable(){
+    useEffect(() => {
+        getCancionesFull({ page: currentPage, pageSize: PAGE_SIZE, sortBy, order, genero, busqueda: debouncedBusqueda })
+            .then((data) => setSongs(data.map(mapCancion)))
+            .catch((err) => console.error("Error al cargar canciones:", err));
+    }, [currentPage, sortBy, order, genero, debouncedBusqueda]);
 
-    return(
+    return (
 
         <div className="songs-table">
 
             <div className="table-header">
-
                 <span>Canción</span>
-
                 <span>Género</span>
-
                 <span>Valencia</span>
-
                 <span>Energía</span>
-
                 <span>Popularidad</span>
-
                 <span>Duración</span>
-
                 <span>Estado</span>
-
-
-
             </div>
 
             <div className="table-body">
-
-                {songs.map(song=>(
-
-                    <SongRow
-
-                        key={song.id}
-
-                        song={song}
-
-                    />
-
+                {songs.map((song) => (
+                    <SongRow key={song.id} song={song} />
                 ))}
-
             </div>
+
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={onPageChange}
+            />
 
         </div>
 

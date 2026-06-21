@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import "./TopGenresChart.css";
 
 import {
@@ -11,20 +12,19 @@ import {
 } from "recharts";
 
 import { tooltipContentStyle, tooltipItemStyle, tooltipLabelStyle } from "../../styles/tooltipStyle";
-
-// TODO: replace with FastAPI fetch (GET /analytics/top-genres)
-const data = [
-    { genre: "K-pop", value: 48000 },
-    { genre: "Dubstep", value: 41000 },
-    { genre: "Gospel", value: 33000 },
-    { genre: "Electrónica", value: 30000 },
-    { genre: "Hard-rock", value: 22000 },
-    { genre: "Alt-rock", value: 18000 }
-];
+import { getTopGenres } from "../../services/api";
 
 const colors = ["#3ba9ff", "#3d5bff", "#ff7a3d", "#a93dff", "#ff3da0", "#33d17a"];
 
 function TopGenresChart() {
+
+    const [data, setData] = useState([]);
+
+    useEffect(() => {
+        getTopGenres()
+            .then(setData)
+            .catch((err) => console.error("Error al cargar géneros más populares:", err));
+    }, []);
 
     return (
 

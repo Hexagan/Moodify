@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import "./ExplicitContentChart.css";
 
 import {
@@ -11,20 +12,19 @@ import {
 } from "recharts";
 
 import { tooltipContentStyle, tooltipItemStyle, tooltipLabelStyle } from "../../styles/tooltipStyle";
-
-// TODO: replace with FastAPI fetch (GET /analytics/explicit-content)
-const data = [
-    { genre: "Deathmetal", value: 88 },
-    { genre: "Hardcore", value: 76 },
-    { genre: "Hard-rock", value: 64 },
-    { genre: "Industrial", value: 55 },
-    { genre: "Alt-rock", value: 38 },
-    { genre: "Metalcore", value: 24 }
-];
+import { getExplicitContent } from "../../services/api";
 
 const colors = ["#a93dff", "#33d17a", "#ff3da0", "#ff9a3d", "#33c97a", "#ff4d4d"];
 
 function ExplicitContentChart() {
+
+    const [data, setData] = useState([]);
+
+    useEffect(() => {
+        getExplicitContent()
+            .then(setData)
+            .catch((err) => console.error("Error al cargar contenido explícito:", err));
+    }, []);
 
     return (
 
@@ -51,10 +51,10 @@ function ExplicitContentChart() {
 
                     <Tooltip
                         cursor={false}
+                        formatter={(v) => `${v}%`}
                         contentStyle={tooltipContentStyle}
                         itemStyle={tooltipItemStyle}
                         labelStyle={tooltipLabelStyle}
-                        formatter={(v) => `${v}%`}
                     />
 
                     <Bar dataKey="value" radius={[0,8,8,0]} barSize={14}>

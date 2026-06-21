@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import "./PsychMap.css";
 
 import {
@@ -12,19 +13,14 @@ import {
 } from "recharts";
 
 import { tooltipContentStyle, tooltipItemStyle, tooltipLabelStyle } from "../../styles/tooltipStyle";
+import { getPsychMap } from "../../services/api";
 
-// TODO: replace with FastAPI fetch (GET /analytics/psych-map)
-const points = [
-    { genre: "Hardcore", valencia: 15, energia: 88, color: "#ff5c5c" },
-    { genre: "Dubstep", valencia: 22, energia: 75, color: "#ff5c5c" },
-    { genre: "Alt-rock", valencia: 58, energia: 82, color: "#c9c93c" },
-    { genre: "Disco", valencia: 78, energia: 80, color: "#c9c93c" },
-    { genre: "Funk", valencia: 76, energia: 56, color: "#c9c93c" },
-    { genre: "Gospel", valencia: 14, energia: 16, color: "#33c9a0" },
-    { genre: "Jazz", valencia: 36, energia: 22, color: "#33c9a0" },
-    { genre: "Rock-n-roll", valencia: 66, energia: 30, color: "#3d8bff" },
-    { genre: "Blues", valencia: 72, energia: 18, color: "#3d8bff" }
-];
+function getQuadrantColor(valencia, energia, midValencia, midEnergia) {
+    if (valencia < midValencia && energia >= midEnergia) return "#ff5c5c";
+    if (valencia >= midValencia && energia >= midEnergia) return "#c9c93c";
+    if (valencia < midValencia && energia < midEnergia) return "#33c9a0";
+    return "#3d8bff";
+}
 
 const CustomDot = (props) => {
 
@@ -43,6 +39,25 @@ const CustomDot = (props) => {
 
 function PsychMap() {
 
+    const [points, setPoints] = useState([]);
+    const [midpoint, setMidpoint] = useState({ valencia: 50, energia: 50 });
+
+    useEffect(() => {
+        getPsychMap()
+            .then((res) => {
+                const mv = res.avg_valence;
+                const me = res.avg_energy;
+                setMidpoint({ valencia: mv, energia: me });
+
+                const withColor = res.points.map((p) => ({
+                    ...p,
+                    color: getQuadrantColor(p.valencia, p.energia, mv, me)
+                }));
+                setPoints(withColor);
+            })
+            .catch((err) => console.error("Error al cargar mapa psicológico:", err));
+    }, []);
+
     return (
 
         <div className="psych-map">
@@ -51,10 +66,10 @@ function PsychMap() {
 
                 <ScatterChart margin={{ top:10, right:20, left:0, bottom:20 }}>
 
-                    <ReferenceArea x1={0} x2={50} y1={50} y2={100} fill="#7a2b2b" fillOpacity={0.5} label={{ value:"Intensa", position:"insideTopLeft", fill:"#ffb3b3", fontSize:16, fontWeight:700 }}/>
-                    <ReferenceArea x1={50} x2={100} y1={50} y2={100} fill="#7a7a2b" fillOpacity={0.5} label={{ value:"Energética", position:"insideTopRight", fill:"#f0e8a0", fontSize:16, fontWeight:700 }}/>
-                    <ReferenceArea x1={0} x2={50} y1={0} y2={50} fill="#1f6b56" fillOpacity={0.5} label={{ value:"Relajante", position:"insideBottomLeft", fill:"#9be8d0", fontSize:16, fontWeight:700 }}/>
-                    <ReferenceArea x1={50} x2={100} y1={0} y2={50} fill="#23437a" fillOpacity={0.5} label={{ value:"Melancólica", position:"insideBottomRight", fill:"#a9c8f5", fontSize:16, fontWeight:700 }}/>
+                    <ReferenceArea x1={0} x2={midpoint.valencia} y1={midpoint.energia} y2={100} fill="#7a2b2b" fillOpacity={0.5} label={{ value:"Intensa", position:"insideTopLeft", fill:"#ffb3b3", fontSize:16, fontWeight:700 }}/>
+                    <ReferenceArea x1={midpoint.valencia} x2={100} y1={midpoint.energia} y2={100} fill="#7a7a2b" fillOpacity={0.5} label={{ value:"Energética", position:"insideTopRight", fill:"#f0e8a0", fontSize:16, fontWeight:700 }}/>
+                    <ReferenceArea x1={0} x2={midpoint.valencia} y1={0} y2={midpoint.energia} fill="#1f6b56" fillOpacity={0.5} label={{ value:"Relajante", position:"insideBottomLeft", fill:"#9be8d0", fontSize:16, fontWeight:700 }}/>
+                    <ReferenceArea x1={midpoint.valencia} x2={100} y1={0} y2={midpoint.energia} fill="#23437a" fillOpacity={0.5} label={{ value:"Melancólica", position:"insideBottomRight", fill:"#a9c8f5", fontSize:16, fontWeight:700 }}/>
 
                     <XAxis
                         type="number"

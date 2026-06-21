@@ -60,13 +60,13 @@ function Dashboard() {
                     </ChartCard>
 
                     <ChartCard
-                        title="Canciones agregadas recientemente"
+                        title="Diez Canciones Aleatorias"
                     >
                         <RecentSongsTable />
                     </ChartCard>
 
                     <ChartCard
-                        title="Distribución por género"
+                        title="Popularidad promedio por género"
                         subtitle="% del catálogo"
                     >
                         <GenreDistributionChart />
