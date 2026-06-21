@@ -12,7 +12,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "https://moodify-one-rho.vercel.app/"
+        "moodify-production-4df4.up.railway.app"
     ],
     allow_methods=["*"],
     allow_headers=["*"],
