@@ -14,13 +14,12 @@ import BioImpact from "./pages/BioImpact";
 function App() {
     return (
         <BrowserRouter>
-
             <Routes>
 
                 <Route
                     path="/"
                     element={<Dashboard />}
-                />
+                    />
 
                 <Route
                     path="/catalogo"
@@ -40,6 +39,7 @@ function App() {
             </Routes>
 
         </BrowserRouter>
+    
     );
 }
 
