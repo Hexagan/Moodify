@@ -364,9 +364,11 @@ SQLALCHEMY_DATABASE_URL = "postgresql://usuario:contraseña@mi.servidor.com:5432
 
 ---
 
-## 8. Troubleshooting de Instalación
+## 14. Troubleshooting de Instalación
 
-### 8.1 Error: "Python no encontrado"
+---
+
+## 8. Troubleshooting de Instalación
 
 **Problema:** `python: command not found` o `python is not recognized`
 
@@ -376,7 +378,7 @@ SQLALCHEMY_DATABASE_URL = "postgresql://usuario:contraseña@mi.servidor.com:5432
 3. **Marca la opción "Add Python to PATH"**
 4. Reinicia Terminal / PowerShell
 
-### 8.2 Error: "PostgreSQL no puede conectar"
+### 14.2 Error: "PostgreSQL no puede conectar"
 
 **Problema:** `ConnectionRefusedError: 111` en backend
 
@@ -388,7 +390,7 @@ SQLALCHEMY_DATABASE_URL = "postgresql://usuario:contraseña@mi.servidor.com:5432
 2. Si no abre: Inicia PostgreSQL
 3. Si persiste: Verifica contraseña en `database.py`
 
-### 8.3 Error: "Puerto 5173 ya en uso"
+### 14.3 Error: "Puerto 5173 ya en uso"
 
 **Problema:** `Error: Port 5173 is already in use`
 
@@ -407,7 +409,7 @@ SQLALCHEMY_DATABASE_URL = "postgresql://usuario:contraseña@mi.servidor.com:5432
    # port: 5174
    ```
 
-### 8.4 Error: "npm: command not found"
+### 14.4 Error: "npm: command not found"
 
 **Problema:** npm no está instalado
 
@@ -416,7 +418,7 @@ SQLALCHEMY_DATABASE_URL = "postgresql://usuario:contraseña@mi.servidor.com:5432
 2. Reinstala desde https://nodejs.org (LTS)
 3. Reinicia Terminal
 
-### 8.5 Error: "modules not found" en backend
+### 14.5 Error: "modules not found" en backend
 
 **Problema:** `ModuleNotFoundError: No module named 'fastapi'`
 
@@ -427,7 +429,7 @@ SQLALCHEMY_DATABASE_URL = "postgresql://usuario:contraseña@mi.servidor.com:5432
    pip install -r requirements.txt
    ```
 
-### 8.6 Error: "Database moodify does not exist"
+### 14.6 Error: "Database moodify does not exist"
 
 **Problema:** Backend no puede conectar a base de datos
 
@@ -452,23 +454,326 @@ cd frontend
 npm run build
 ```
 
-Genera carpeta `dist/` con archivos optimizados.
+Genera carpeta `dist/` con archivos optimizados (~300 KB gzippeados).
 
-### 9.2 Deploy a Vercel (opcional)
+---
+
+## 10. Despliegue en Vercel (Frontend)
+
+**Vercel** es la plataforma oficial para Vite/React. Proporciona hosting gratuito con CDN global, SSL automático y depliegue continuo desde GitHub.
+
+### 10.1 Configuración previa
+
+1. **Asegurarse de que el repositorio está en GitHub**
+   ```bash
+   git remote -v
+   # Debería mostrar una URL de GitHub
+   ```
+
+2. **Verificar que el build funciona localmente**
+   ```bash
+   cd frontend
+   npm run build
+   # Si ves "dist/" sin errores, éstamos listos
+   ```
+
+### 10.2 Pasos de despliegue en Vercel
+
+**Opción A: Desde Vercel Dashboard (recomendado)**
+
+1. Ir a https://vercel.com
+2. Crear cuenta o login con GitHub
+3. Click "Add New..." → "Project"
+4. Seleccionar repositorio `Moodify` de GitHub
+5. Vercel detecta automáticamente:
+   - Framework: `Vite`
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+6. Click "Deploy"
+
+**Opción B: Desde CLI**
 
 ```bash
-# Instalar Vercel CLI
+# Instalar Vercel CLI global
 npm install -g vercel
 
-# Desde la raíz del proyecto
+# Desde la carpeta raíz del proyecto
+cd "d:\01 - Tecnicatura superior en desarrollo de software\2do anio\PPII\Moodify\Moodify"
+
+# Login con GitHub
+vercel login
+
+# Deploy frontend
+cd frontend
 vercel
 
-# Sigue los pasos
+# Sigue los prompts:
+# ✅ Confirmar scope (tu usuario GitHub)
+# ✅ Link to existing project? (no, es nuevo)
+# ✅ Project name: moodify-fe
+# ✅ Root directory: ./frontend (o dejar vacío)
+```
+
+### 10.3 Configurar variables de entorno en Vercel
+
+Este es el paso **CRTICO** para conectar el frontend con el backend en Railway.
+
+1. En Vercel Dashboard → Seleccionar proyecto → Settings
+2. Tab "Environment Variables"
+3. Agregar nueva variable:
+   - **Name:** `VITE_API_BASE_URL`
+   - **Value:** `https://api-moodify.railway.app` (o la URL de tu backend en Railway)
+   - **Environments:** Seleccionar "Production", "Preview", "Development"
+4. Click "Save"
+5. **Redeploy** desde Deployments tab para aplicar cambios
+
+**Nota:** Si despliegas el backend en Railway primero, obtendrás la URL. Si no, usa un placeholder y actualiza después.
+
+### 10.4 Verificación del despliegue
+
+Después del deploy, Vercel te muestra una URL como: `https://moodify-fe.vercel.app`
+
+```bash
+# Verificar que la app carga
+curl -I https://moodify-fe.vercel.app
+# Debe devolver: HTTP/1.1 200 OK
+
+# Abrir en navegador y revisar:
+# ✅ Página carga sin errores
+# ✅ Dashboard muestra gráficos
+# ✅ DevTools (F12) → Console: sin errores rojos
+# ✅ DevTools → Network: llamadas a API status 200
+```
+
+### 10.5 Configurar despliegue automático
+
+Vercel monitorea tu repositorio GitHub automáticamente:
+
+- **Push a `main`:** Deploya a producción instantáneamente
+- **Push a otra rama:** Crea preview deployment (URL temporal)
+- **Pull Request:** Genera URL de preview para testing antes de merge
+
+**Para desabilitar despliegues automáticos:**
+- Settings → Git → Ignored Build Step
+
+### 10.6 Troubleshooting Vercel
+
+| Problema | Causa | Solución |
+|----------|-------|----------|
+| Build falla con "Module not found" | `package.json` tiene dependencias faltantes | Ejecutar `npm install` localmente, commitear `package-lock.json` |
+| App carga pero API devuelve 404 | `VITE_API_BASE_URL` está mal configurada | Revisar variable en Vercel Settings |
+| CORS error en navegador | Backend no tiene Vercel en `allow_origins` | Actualizar backend CORS (ver sección 11) |
+| Logs no se actualizan | Cáche de CDN | Ir a Settings → Git → Redeploy from Cache → desabilitar |
+
+---
+
+## 11. Despliegue en Railway (Backend)
+
+**Railway** es una plataforma moderna que gestiona servidores, bases de datos y variables de entorno. Ideal para backends Python/FastAPI.
+
+### 11.1 Configuración previa
+
+1. **Instalar Railway CLI** (opcional, pero recomendado)
+   ```bash
+   npm install -g @railway/cli
+   ```
+
+2. **Asegurarse de que requierements.txt está actualizado**
+   ```bash
+   cd backend
+   pip freeze > requirements.txt
+   git add requirements.txt
+   git commit -m "Update dependencies"
+   git push
+   ```
+
+3. **Agregar Gunicorn a requirements.txt** (para producción)
+   ```bash
+   pip install gunicorn
+   pip freeze > requirements.txt
+   ```
+
+### 11.2 Pasos de despliegue en Railway
+
+**Opción A: Desde Railway Dashboard (recomendado)**
+
+1. Ir a https://railway.app
+2. Sign up / Login con GitHub
+3. Click "New Project" → "Deploy from GitHub repo"
+4. Autorizar GitHub y seleccionar repositorio `Moodify`
+5. Railway inicia el build automáticamente
+   - Detecta Python
+   - Instala `requirements.txt`
+   - Inicia el servicio
+
+**Opción B: Desde CLI**
+
+```bash
+# Login
+railway login
+
+# Desde la raíz del proyecto
+cd "d:\01 - Tecnicatura superior en desarrollo de software\2do anio\PPII\Moodify\Moodify"
+
+# Crear proyecto en Railway
+railway init
+
+# Seguir prompts y confirmar
+railway up
+```
+
+### 11.3 Crear base de datos PostgreSQL en Railway
+
+1. En Railway Dashboard → New Service
+2. Seleccionar "PostgreSQL"
+3. Railway crea la BD automáticamente
+4. Copiar variables de conexión:
+   - `PGHOST`
+   - `PGPORT`
+   - `PGUSER`
+   - `PGPASSWORD`
+   - `PGDATABASE`
+   - O usar `DATABASE_URL` que combina todo
+
+### 11.4 Configurar variables de entorno en Railway
+
+1. En Railway Dashboard → Backend service → Variables
+2. Agregar:
+   ```
+   DATABASE_URL=postgresql://user:password@host:5432/moodify
+   RAILWAY_ENVIRONMENT=production
+   FRONTEND_URL=https://moodify-fe.vercel.app
+   ```
+3. Click "Apply"
+
+### 11.5 Cargar datos iniciales en BD
+
+Después de crear la BD en Railway:
+
+```bash
+# Usar connection string de Railway
+# Reemplaza USER, PASSWORD, HOST, PORT:
+psql postgresql://USER:PASSWORD@HOST:PORT/moodify -f database/moodify.backup
+
+# O si tienes backup en CSV:
+psql postgresql://USER:PASSWORD@HOST:PORT/moodify -f database/schema.sql
+```
+
+**Verificar carga:**
+```bash
+psql postgresql://USER:PASSWORD@HOST:PORT/moodify -c "SELECT COUNT(*) FROM songs;"
+# Debería devolver algo como: 113549
+```
+
+### 11.6 Configurar comando de start en Railway
+
+En Railway Dashboard → Backend service → Deploy:
+
+- **Build Command:** `pip install -r requirements.txt`
+- **Start Command:** `gunicorn -w 4 -b 0.0.0.0:8000 main:app`
+- **Port:** `8000`
+
+### 11.7 Actualizar CORS en backend
+
+Para que el frontend en Vercel pueda llamar al backend en Railway:
+
+Modificar `backend/main.py`:
+
+```python
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://moodify-fe.vercel.app",  # URL frontend en Vercel
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+**Commit y push:**
+```bash
+git add backend/main.py
+git commit -m "Update CORS for production URLs"
+git push
+```
+
+Railway detectará el cambio y redeploya automáticamente.
+
+### 11.8 Verificación del despliegue
+
+Railway asigna una URL como: `https://moodify-backend-prod.railway.app`
+
+```bash
+# Verificar que el backend responde
+curl https://api-moodify.railway.app/docs
+# Debería devolver el HTML de Swagger
+
+# Probar endpoint de canciones
+curl https://api-moodify.railway.app/canciones
+# Debería devolver JSON con canciones
+
+# Abre en navegador para verificar Swagger UI
+# https://api-moodify.railway.app/docs
+```
+
+### 11.9 Monitoreo en Railway
+
+**Railway Dashboard ofrece:**
+
+- **Logs:** Todos los errores y requests se registran
+- **Métricas:** CPU, memoria, tiempo de respuesta
+- **Health checks:** Status del servicio
+- **Rollback:** Volver a deployment anterior con un click
+
+**Verificar logs en caso de error:**
+```bash
+# Desde CLI
+railway logs
+
+# O en Dashboard: service → Logs tab
+```
+
+### 11.10 Troubleshooting Railway
+
+| Problema | Causa | Solución |
+|----------|-------|----------|
+| Build falla | `requirements.txt` incompleto o dependencias incompatibles | Ejecutar `pip freeze > requirements.txt` localmente |
+| "ModuleNotFoundError" en logs | Importación incorrecta en main.py | Revisar que `from fastapi import FastAPI` existe |
+| BD no conecta | DATABASE_URL mal configurada | Copiar directamente desde Railway Variables |
+| Port mismatch error | puerto incorrecto en Start Command | Verificar que es puerto `8000` |
+| CORS error en frontend | Backend no tiene URL de Vercel en `allow_origins` | Actualizar main.py y hacer push |
+
+---
+
+## 12. Verificación End-to-End (Producción)
+
+Despues de desplegar tanto frontend como backend:
+
+```bash
+# 1. Abrir frontend en navegador
+https://moodify-fe.vercel.app
+
+# 2. Verificar que aparecen los datos
+# Ir a DevTools (F12)
+# Network tab: buscar llamadas a "https://api-moodify.railway.app"
+# Deben devolver status 200
+
+# 3. Verificar que los gráficos cargan
+# Dashboard: KPIs visibles
+# Gráficos: Recharts renderiza correctamente
+# Catálogo: tabla con canciones
+
+# 4. Console: no debe haber errores rojos (solo warnings OK)
 ```
 
 ---
 
-## 10. Estructura de Carpetas Esperada
+## 13. Estructura de Carpetas Esperada
 
 Después de la instalación, tu carpeta debe verse así:
 
