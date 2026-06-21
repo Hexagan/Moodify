@@ -13,204 +13,271 @@ La tabla `songs` es la única tabla del sistema. Almacena los atributos musicale
 
 > **Nota:** Una misma canción puede aparecer en múltiples filas si fue clasificada en varios géneros. Esto es intencional en el diseño del dataset (el organizador limitó a ~1.000 canciones por género).
 
-### 1.1 Tabla: `public.songs`
+### 1.1 Tabla: `songs`
 
-#### Campos de identificación
+#### Campos principales
 
-| Campo | Tipo SQL | Restricción | Rango / Valores | Descripción |
-|-------|----------|-------------|-----------------|-------------|
-| `id` | `INTEGER` | PK · NOT NULL · autoincremental | Entero positivo | Clave primaria interna generada por la secuencia `songs_id_seq`. No proviene de Spotify. |
-| `track_id` | `TEXT` | Puede duplicarse | String alfanumérico | ID de la pista en Spotify. Una misma `track_id` puede aparecer en múltiples filas si la canción fue clasificada en varios géneros. |
-| `track_name` | `TEXT` | NOT NULL | Texto libre | Nombre oficial de la canción tal como figura en Spotify. |
-| `artists` | `TEXT` | NOT NULL | Texto libre | Nombre del artista o artistas. Cuando hay varios, aparecen separados por punto y coma o coma según el dataset. |
-| `album_name` | `TEXT` | Opcional | Texto libre | Nombre del álbum al que pertenece la canción. |
-| `track_genre` | `TEXT` | Opcional | Ej: `'pop'`, `'rock'`, `'jazz'` | Género musical asignado por el organizador del dataset. |
+| Campo | Tipo SQL | Restricción | Descripción |
+|-------|----------|-------------|-------------|
+| `id` | `INTEGER` | PK · NOT NULL · autoincremental | Identificador único interno generado por la base de datos. |
+| `track_id` | `TEXT` | Puede duplicarse | ID de la pista en Spotify. Puede repetirse si la misma canción aparece en varios géneros. |
+| `track_name` | `TEXT` | NOT NULL | Nombre de la canción. |
+| `artists` | `TEXT` | NOT NULL | Artista(s) de la canción. |
+| `album_name` | `TEXT` | Opcional | Nombre del álbum. |
+| `track_genre` | `TEXT` | Opcional | Género musical. |
+| `popularity` | `INTEGER` | 0–100 | Puntaje de popularidad. |
+| `duration_ms` | `INTEGER` | NOT NULL | Duración en milisegundos. |
+| `explicit` | `BOOLEAN` | true / false | Indica contenido explícito. |
+| `danceability` | `FLOAT` | 0.0–1.0 | Bailabilidad de la canción. |
+| `energy` | `FLOAT` | 0.0–1.0 | Nivel de energía percibido. |
+| `loudness` | `FLOAT` | dB negativos | Loudness promedio. |
+| `acousticness` | `FLOAT` | 0.0–1.0 | Probabilidad de que la canción sea acústica. |
+| `valence` | `FLOAT` | 0.0–1.0 | Nivel de positividad emocional. |
 
-#### Métricas básicas
-
-| Campo | Tipo SQL | Restricción | Rango / Valores | Descripción |
-|-------|----------|-------------|-----------------|-------------|
-| `popularity` | `SMALLINT` | CHECK 0 ≤ x ≤ 100 | 0 (desconocida) – 100 (viral) | Índice de popularidad calculado por Spotify según reproducciones recientes. No es un valor fijo; cambia con el tiempo. |
-| `duration_ms` | `INTEGER` | NOT NULL | Milisegundos (ej: 210000 = 3:30) | Duración total de la canción en milisegundos. |
-| `explicit` | `BOOLEAN` | `true` / `false` | true = contiene lenguaje explícito | Indica si Spotify marcó la canción como contenido explícito. |
-
-#### Atributos emocionales / psicológicos
-
-| Campo | Tipo SQL | Restricción | Rango / Valores | Descripción |
-|-------|----------|-------------|-----------------|-------------|
-| `valence` | `NUMERIC(5,4)` | CHECK 0.0000 – 1.0000 | 0 = muy triste / 1 = muy feliz | Medida de positividad musical. Valores altos suenan alegres y eufóricos; valores bajos suenan tristes o tensos. |
-| `energy` | `NUMERIC(4,3)` | CHECK 0.000 – 1.000 | 0 = tranquila / 1 = muy intensa | Percepción de intensidad y actividad. Géneros como metal o EDM tienen energía alta; música clásica o ambient, baja. |
-| `danceability` | `NUMERIC(4,3)` | CHECK 0.000 – 1.000 | 0 = no bailable / 1 = muy bailable | Qué tan adecuada es la canción para bailar según tempo, estabilidad rítmica y regularidad del beat. |
-
-#### Atributos acústicos / técnicos
-
-| Campo | Tipo SQL | Restricción | Rango / Valores | Descripción |
-|-------|----------|-------------|-----------------|-------------|
-| `loudness` | `NUMERIC(6,3)` | Valores negativos (dB) | Típico: -60 a 0 dB | Volumen general en decibeles, promediado en toda la canción. Valores cercanos a 0 son más fuertes. |
-| `acousticness` | `NUMERIC(5,4)` | CHECK 0.0000 – 1.0000 | 0 = eléctrica / 1 = acústica | Confianza de que la canción es acústica (sin amplificación eléctrica). |
-| `instrumentalness` | `NUMERIC(8,7)` | CHECK 0.0000000 – 1.0000000 | 0 = vocal / 1 = instrumental | Probabilidad de que la canción no contenga voz. Valores > 0.5 se interpretan como instrumentales. |
-| `speechiness` | `NUMERIC(5,4)` | CHECK 0.0000 – 1.0000 | > 0.66 = spoken word | Detecta la presencia de palabras habladas. Valores muy altos corresponden a podcasts o rap. |
-| `liveness` | `NUMERIC(5,4)` | CHECK 0.0000 – 1.0000 | > 0.8 = probablemente en vivo | Detecta si hay audiencia en la grabación. Valores altos sugieren grabación en vivo. |
-| `tempo` | `NUMERIC(6,2)` | BPM estimado | Típico: 60 – 200 BPM | Beats por minuto estimados. Representa la velocidad general de la canción. |
-
-#### Tonalidad
-
-| Campo | Tipo SQL | Restricción | Rango / Valores | Descripción |
-|-------|----------|-------------|-----------------|-------------|
-| `key` | `SMALLINT` | CHECK 0 – 11 | 0=Do, 1=Do#, 2=Re … 11=Si | Tonalidad estimada usando notación de clase de tono (Pitch Class). -1 si no se detectó. |
-| `mode` | `SMALLINT` | CHECK 0 o 1 | 0 = menor / 1 = mayor | Modalidad de la escala. Mayor suele sonar más alegre; menor, más melancólico. |
-| `time_signature` | `SMALLINT` | Entero positivo | Típico: 3, 4 o 5 | Compás estimado. Indica cuántos tiempos tiene cada compás (ej: 4 = compás 4/4, el más común en música popular). |
+> El backend actual solo mapea estos 13 campos. Si se requieren análisis adicionales, actualizar `backend/models.py` y `backend/schemas.py`.
 
 ---
 
 ### 1.2 Campos expuestos en la API vs. campos en la BD
 
-El modelo ORM (`Cancion`) y el schema de respuesta (`CancionRespuesta`) no exponen todos los campos de la tabla.
+El modelo ORM (`Cancion`) y el schema de respuesta (`CancionRespuesta`) solo exponen los campos usados por el backend actual.
 
 | Campo | En BD | En API | Nota |
 |-------|:-----:|:------:|------|
-| `id` | ✅ | ✅ | Siempre presente como clave de identificación |
-| `track_id` | ✅ | ✅ | Puede estar duplicado entre filas |
+| `id` | ✅ | ✅ | Identificador interno |
+| `track_id` | ✅ | ✅ | ID de Spotify |
 | `track_name` | ✅ | ✅ | |
 | `artists` | ✅ | ✅ | |
 | `album_name` | ✅ | ✅ | |
-| `track_genre` | ✅ | ✅ | También usado como parámetro de filtro |
+| `track_genre` | ✅ | ✅ | Filtro de género |
 | `popularity` | ✅ | ✅ | |
 | `duration_ms` | ✅ | ✅ | |
-| `explicit` | ✅ | ✅ | También usado como parámetro de filtro |
+| `explicit` | ✅ | ✅ | |
 | `danceability` | ✅ | ✅ | |
 | `energy` | ✅ | ✅ | |
 | `loudness` | ✅ | ✅ | |
 | `acousticness` | ✅ | ✅ | |
 | `valence` | ✅ | ✅ | |
-| `instrumentalness` | ✅ | ❌ | Existe en BD pero no está en el modelo ORM ni en la respuesta |
-| `speechiness` | ✅ | ❌ | Existe en BD pero no está en el modelo ORM ni en la respuesta |
-| `liveness` | ✅ | ❌ | Existe en BD pero no está en el modelo ORM ni en la respuesta |
-| `tempo` | ✅ | ❌ | Existe en BD pero no está en el modelo ORM ni en la respuesta |
-| `key` | ✅ | ❌ | Existe en BD pero no está en el modelo ORM ni en la respuesta |
-| `mode` | ✅ | ❌ | Existe en BD pero no está en el modelo ORM ni en la respuesta |
-| `time_signature` | ✅ | ❌ | Existe en BD pero no está en el modelo ORM ni en la respuesta |
 
-> **Recomendación para Lucas:** los 7 campos marcados con ❌ deberían agregarse al modelo `Cancion` y a `CancionRespuesta` en `main.py` si los módulos de Análisis o BioImpacto los necesitan en el frontend.
+> El backend actual omite campos adicionales como `instrumentalness`, `speechiness`, `liveness`, `tempo`, `key`, `mode` y `time_signature`.
 
 ---
 
 ## 2. Documentación de la API REST
 
-La API está construida con FastAPI (Python) y se comunica con PostgreSQL mediante SQLAlchemy. Todos los endpoints devuelven JSON y están disponibles en `http://localhost:8000`.
+La API se ejecuta en `http://localhost:8000` y devuelve JSON. FastAPI expone documentación interactiva en `http://localhost:8000/docs`.
 
-FastAPI genera automáticamente una interfaz Swagger interactiva en **http://localhost:8000/docs** donde se pueden probar los endpoints sin herramientas externas.
-
-### 2.1 Información General
+### 2.1 Información general
 
 | Propiedad | Valor |
 |-----------|-------|
 | URL base | `http://localhost:8000` |
-| Formato de respuesta | JSON (`application/json`) |
-| Autenticación | Sin autenticación (acceso libre en entorno local) |
-| CORS | Habilitado para todos los orígenes (`*`) |
-| Documentación interactiva | `http://localhost:8000/docs` |
-| Límite de resultados | 100 registros en `/canciones` · 50 en `/canciones/filtrar` |
+| Formato de respuesta | JSON |
+| Autenticación | No hay |
+| CORS | Permitido para `http://localhost:5173` y Vercel |
+| Backend | `backend/main.py` |
+| Configuración BD | `backend/database.py` |
 
 ---
 
-### 2.2 Endpoints
-
----
+### 2.2 Endpoints de canciones
 
 #### `GET /canciones`
 
-Retorna las primeras 100 canciones del catálogo sin aplicar ningún filtro.
+Retorna canciones paginadas.
 
-**Parámetros:** ninguno
+Query params:
+- `page` (int, mínimo 1). Default: 1.
+- `page_size` (int, 1–100). Default: 10.
+- `sort_by` (string): `valencia`, `energia`, `popularidad`, `duracion`.
+- `order` (string): `asc` o `desc`. Default: `asc`.
+- `genero` (string): filtro exacto por `track_genre`.
+- `busqueda` (string): busca texto en `track_name` y `artists`.
 
-**Ejemplo de llamada:**
+Ejemplo:
 ```
-GET http://localhost:8000/canciones
+GET http://localhost:8000/canciones?page=2&page_size=20&sort_by=popularidad&order=desc&genero=rock
 ```
 
-**Respuesta:** Array JSON con hasta 100 objetos `CancionRespuesta`. Si la base de datos está vacía, retorna `[]`.
-
-> ⚠️ El límite de 100 registros es fijo. Para paginación completa se recomienda agregar parámetros `skip` y `limit` en futuras versiones.
+Respuesta: arreglo de objetos `CancionRespuesta`.
 
 ---
 
 #### `GET /canciones/filtrar`
 
-Retorna canciones filtradas por género musical y/o contenido explícito. Los parámetros son opcionales e independientes entre sí.
+Filtra canciones según los criterios indicados.
 
-**Parámetros de query:**
+Query params:
+- `genero` (string)
+- `min_energia` (float)
+- `min_valencia` (float)
+- `es_explicita` (boolean)
 
-| Parámetro | Tipo | Requerido | Descripción |
-|-----------|------|:---------:|-------------|
-| `genero` | `string` | No | Filtra por género musical exacto. Ej: `pop`, `rock`, `jazz`. La comparación es case-sensitive. |
-| `es_explicita` | `boolean` | No | Filtra por contenido explícito. `true` = solo explícitas · `false` = solo no explícitas. |
-
-**Ejemplos de llamada:**
+Ejemplos:
 ```
-GET http://localhost:8000/canciones/filtrar?genero=pop
+GET http://localhost:8000/canciones/filtrar?genero=pop&min_energia=0.6
 GET http://localhost:8000/canciones/filtrar?es_explicita=false
-GET http://localhost:8000/canciones/filtrar?genero=pop&es_explicita=false
 ```
 
-**Respuesta:** Array JSON con hasta 50 objetos `CancionRespuesta` que cumplan los filtros aplicados.
-
-> ⚠️ Si no se pasa ningún parámetro, devuelve las primeras 50 canciones sin filtrar. El parámetro `genero` distingue mayúsculas de minúsculas — verificar con `SELECT DISTINCT track_genre FROM songs` los valores exactos disponibles.
+Respuesta: arreglo de hasta 50 objetos `CancionRespuesta`.
 
 ---
 
-### 2.3 Modelo de Respuesta — `CancionRespuesta`
+#### `GET /canciones/recomendar/{emocion}`
 
-Todos los endpoints devuelven objetos con esta estructura:
+Recomienda canciones según emoción.
 
+Valores válidos:
+- `feliz`, `alegria`, `alegre`
+- `triste`, `melancolia`, `tristeza`
+- `relajado`, `calma`, `paz`
+- `energia`, `euforia`, `intenso`
+
+Ejemplo:
+```
+GET http://localhost:8000/canciones/recomendar/feliz
+```
+
+Respuesta: hasta 10 canciones ordenadas por popularidad.
+
+---
+
+#### `GET /canciones/count`
+
+Cuenta canciones según filtros.
+
+Query params:
+- `genero` (string)
+- `busqueda` (string)
+
+Respuesta:
+```json
+{ "total": 1234 }
+```
+
+---
+
+#### `GET /canciones/random`
+
+Devuelve 10 canciones al azar.
+
+---
+
+#### `GET /canciones/generos`
+
+Devuelve la lista de géneros únicos.
+
+Respuesta: arreglo de strings.
+
+---
+
+#### `POST /canciones`
+
+Crea una canción nueva.
+
+Body JSON requerido:
 ```json
 {
-  "id": 1,
-  "track_id": "4BJqT0PrAfrxzMOxytFOIz",
-  "track_name": "Bohemian Rhapsody",
-  "artists": "Queen",
-  "album_name": "A Night at the Opera",
-  "track_genre": "rock",
-  "popularity": 87,
-  "duration_ms": 354000,
+  "track_id": "string",
+  "track_name": "string",
+  "artists": "string",
+  "album_name": "string",
+  "track_genre": "string",
+  "popularity": 0,
+  "duration_ms": 0,
   "explicit": false,
-  "danceability": 0.387,
-  "energy": 0.599,
-  "loudness": -7.255,
-  "acousticness": 0.0724,
-  "valence": 0.233
+  "danceability": 0.0,
+  "energy": 0.0,
+  "loudness": 0.0,
+  "acousticness": 0.0,
+  "valence": 0.0
 }
 ```
 
-**Detalle de campos:**
-
-| Campo | Tipo JSON | Default si null | Descripción |
-|-------|-----------|:---------------:|-------------|
-| `id` | `integer` | — | Identificador único (siempre presente) |
-| `track_id` | `string` | `null` | ID de la pista en Spotify |
-| `track_name` | `string` | `null` | Nombre de la canción |
-| `artists` | `string` | `null` | Artista(s) |
-| `album_name` | `string` | `null` | Álbum |
-| `track_genre` | `string` | `null` | Género musical |
-| `popularity` | `integer` | `0` | Popularidad (0–100) |
-| `duration_ms` | `integer` | `0` | Duración en milisegundos |
-| `explicit` | `boolean` | `false` | Contenido explícito |
-| `danceability` | `number` | `0.0` | Bailabilidad (0.0–1.0) |
-| `energy` | `number` | `0.0` | Energía (0.0–1.0) |
-| `loudness` | `number` | `0.0` | Volumen en dB (valor negativo) |
-| `acousticness` | `number` | `0.0` | Acousticness (0.0–1.0) |
-| `valence` | `number` | `0.0` | Valencia emocional (0.0–1.0) |
+Respuesta: objeto `CancionRespuesta`.
 
 ---
 
-### 2.4 Errores comunes
+#### `PUT /canciones/{cancion_id}`
 
-| Código HTTP | Causa | Solución |
-|-------------|-------|----------|
-| `500` | El backend no puede conectarse a PostgreSQL | Verificar que PostgreSQL esté corriendo y que la contraseña en `database.py` sea correcta. |
-| `422` | `es_explicita` recibido como string en lugar de boolean | Pasar sin comillas: `?es_explicita=true` |
-| `200` con `[]` | El género solicitado no existe en la BD | Verificar con `SELECT DISTINCT track_genre FROM songs` los valores exactos. |
-| CORS error | El frontend no puede llegar al backend | Confirmar que el backend esté en `http://localhost:8000` y que CORS esté habilitado. |
+Actualiza una canción existente.
+
+Body JSON: igual que `POST /canciones`.
+
+Respuesta: objeto `CancionRespuesta` actualizado.
+
+Si no existe el ID, devuelve:
+```json
+{ "error": "Canción no encontrada" }
+```
+
+---
+
+#### `DELETE /canciones/{cancion_id}`
+
+Elimina una canción por ID.
+
+Respuesta:
+```json
+{ "mensaje": "La canción con ID 123 fue eliminada con éxito" }
+```
+
+---
+
+### 2.3 Endpoints de estadísticas
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/stats/kpis` | KPIs generales del catálogo. |
+| `GET` | `/stats/genre-distribution` | Distribución de popularidad por género. |
+| `GET` | `/stats/top-genres` | Top 6 géneros por popularidad promedio. |
+| `GET` | `/stats/explicit-content` | Porcentaje de contenido explícito por género. |
+| `GET` | `/stats/loudness-by-genre` | Loudness promedio por género. |
+| `GET` | `/stats/acoustic-index` | Acousticness promedio para géneros BioImpact específicos. |
+| `GET` | `/stats/top-acoustic-songs` | Top 6 canciones con mayor acousticness. |
+| `GET` | `/stats/psych-map` | Valores promedio de valence y energy por género. |
+
+---
+
+### 2.4 Modelo de respuesta — `CancionRespuesta`
+
+Campos devueltos por los endpoints de canciones:
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `id` | integer | Identificador interno |
+| `track_id` | string | ID de Spotify |
+| `track_name` | string | Nombre de la canción |
+| `artists` | string | Artista(s) |
+| `album_name` | string | Álbum |
+| `track_genre` | string | Género |
+| `popularity` | integer | Popularidad 0–100 |
+| `duration_ms` | integer | Duración en ms |
+| `explicit` | boolean | Contenido explícito |
+| `danceability` | number | Bailabilidad 0.0–1.0 |
+| `energy` | number | Energía 0.0–1.0 |
+| `loudness` | number | Loudness en dB |
+| `acousticness` | number | Acousticness 0.0–1.0 |
+| `valence` | number | Valencia 0.0–1.0 |
+
+---
+
+### 2.5 Consideraciones de uso
+
+- `genero` es un filtro exacto.
+- `es_explicita` debe enviarse como booleano (`true`/`false`).
+- `/canciones/filtrar` no admite `page` ni `page_size`.
+- `/canciones/recomendar/{emocion}` utiliza reglas internas de `energy` y `valence`.
+
+---
+
+### 2.6 Errores comunes
+
+| Código | Causa | Solución |
+|-------|-------|----------|
+| `500` | No se puede conectar a PostgreSQL | Verificar `backend/database.py` y el servidor PostgreSQL. |
+| `422` | Parámetro mal formado | Corregir el tipo del query. |
+| `200` con `[]` | No hay coincidencias | Probar otro filtro o quitar condiciones. |
 
 ---
 

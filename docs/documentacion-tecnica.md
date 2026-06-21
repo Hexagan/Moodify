@@ -66,19 +66,19 @@ Moodify sigue una arquitectura de tres capas desacopladas que se comunican a tra
 
 ## 3. Base de Datos
 
-La base de datos se denomina `musica_emociones` y corre en un servidor PostgreSQL local. Contiene la tabla `songs` con los atributos musicales y emocionales de cada canción.
+La base de datos del proyecto se denomina `moodify` y corre en un servidor PostgreSQL local. Contiene la tabla `songs` con los atributos musicales y emocionales de cada canción.
 
 ### 3.1 Configuración de Conexión
 
 ```
 Host:     localhost
 Puerto:   5432
-Base:     musica_emociones
+Base:     moodify
 Usuario:  postgres
-ORM URL:  postgresql://postgres:<CONTRASEÑA>@localhost:5432/musica_emociones
+ORM URL:  postgresql://postgres:1234@localhost:5432/moodify
 ```
 
-> La contraseña se configura en `backend/database.py`. No commitear credenciales reales al repositorio.
+> La conexión se define en `backend/database.py` usando `SQLALCHEMY_DATABASE_URL`. Cambiar la contraseña o el host allí si se usa otro entorno.
 
 ### 3.2 Tabla `songs`
 
@@ -94,37 +94,89 @@ El backend está desarrollado con FastAPI (Python) y expone una API REST que el 
 
 ```
 backend/
-├── main.py        # Definición de la app, modelos ORM, schemas Pydantic y rutas
-└── database.py    # Configuración de la conexión a PostgreSQL
+├── main.py               # Definición de la app, registro de routers y middleware CORS
+├── database.py           # Configuración de la conexión a PostgreSQL y sesión SQLAlchemy
+├── models.py             # Definición del modelo ORM `Cancion`
+├── schemas.py            # Schemas Pydantic para peticiones y respuestas
+├── requirements.txt      # Dependencias de Python del backend
+└── routers/
+    ├── canciones.py      # Endpoints CRUD y filtros de canciones
+    └── stats.py          # Endpoints de métricas y estadísticas
 ```
 
 ### 4.2 Cómo levantar el backend
 
-**Requisitos previos:** Python 3.x, pip, PostgreSQL corriendo con la base `musica_emociones` cargada.
+**Requisitos previos:** Python 3.x, pip, PostgreSQL corriendo con la base `moodify` cargada.
 
 ```bash
-# 1. Instalar dependencias
-pip install fastapi uvicorn sqlalchemy psycopg2-binary pydantic
-
-# 2. Configurar contraseña en backend/database.py
-# SQLALCHEMY_DATABASE_URL = "postgresql://postgres:TU_CONTRASEÑA@localhost:5432/musica_emociones"
-
-# 3. Levantar el servidor
+# 1. Crear y activar un entorno virtual (recomendado)
 cd backend
-uvicorn main:app --reload
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 
-# 4. Verificar en el navegador
+# 2. Instalar dependencias
+pip install -r requirements.txt
+
+# 3. Configurar la conexión en backend/database.py
+# SQLALCHEMY_DATABASE_URL = "postgresql://postgres:1234@localhost:5432/moodify"
+
+# 4. Levantar el servidor
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+# 5. Verificar en el navegador
 # http://localhost:8000/docs
 ```
 
+> El backend habilita CORS para `http://localhost:5173` y la URL de despliegue Vercel usada en el frontend.
+
 ### 4.3 Endpoints disponibles
 
-La documentación completa de los endpoints se encuentra en [`docs/diccionario-datos.md`](./diccionario-datos.md#2-documentación-de-la-api-rest).
+La documentación completa de los endpoints se encuentra en [`docs/diccionario-datos.md`](./diccionario-datos.md#2-documentación-de-la-api-rest), pero los principales endpoints del backend son los siguientes.
+
+#### Endpoints de canciones
 
 | Método | Ruta | Descripción |
 |--------|------|-------------|
-| `GET` | `/canciones` | Retorna las primeras 100 canciones del catálogo |
-| `GET` | `/canciones/filtrar` | Filtra por género (`genero`) y/o contenido explícito (`es_explicita`) |
+| `GET` | `/canciones` | Devuelve una lista paginada de canciones. Soporta `page`, `page_size`, `sort_by`, `order`, `genero` y `busqueda`. |
+| `GET` | `/canciones/filtrar` | Filtra canciones por `genero`, `min_energia`, `min_valencia` y `es_explicita`. |
+| `GET` | `/canciones/recomendar/{emocion}` | Devuelve hasta 10 canciones recomendadas según una emoción (`feliz`, `triste`, `relajado`, `energia`). |
+| `GET` | `/canciones/count` | Cuenta canciones totales según filtros `genero` y `busqueda`. |
+| `GET` | `/canciones/random` | Devuelve 10 canciones aleatorias. |
+| `GET` | `/canciones/generos` | Devuelve la lista de géneros disponibles en el catálogo. |
+| `POST` | `/canciones` | Crea una nueva canción en la base de datos. |
+| `PUT` | `/canciones/{cancion_id}` | Actualiza los datos de una canción existente. |
+| `DELETE` | `/canciones/{cancion_id}` | Elimina una canción por ID. |
+
+#### Endpoints de estadísticas
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/stats/kpis` | KPIs generales del catálogo. |
+| `GET` | `/stats/genre-distribution` | Distribución de popularidad por género. |
+| `GET` | `/stats/top-genres` | Top 6 géneros por popularidad promedio. |
+| `GET` | `/stats/explicit-content` | Porcentaje de contenido explícito por género. |
+| `GET` | `/stats/loudness-by-genre` | Loudness promedio por género. |
+| `GET` | `/stats/acoustic-index` | Acousticness promedio para géneros BioImpact seleccionados. |
+| `GET` | `/stats/top-acoustic-songs` | Top 6 canciones con mayor acousticness. |
+| `GET` | `/stats/psych-map` | Mapa psicológico de valencia y energía por género. |
+
+### 4.4 Parámetros clave de los endpoints
+
+##### `/canciones`
+- `page`: página actual (entero, mínimo 1). Default: 1.
+- `page_size`: cantidad de resultados por página (1–100). Default: 10.
+- `sort_by`: ordena por `valencia`, `energia`, `popularidad` o `duracion`.
+- `order`: `asc` o `desc`. Default: `asc`.
+- `genero`: filtro exacto de género musical.
+- `busqueda`: búsqueda parcial en `track_name` y `artists`.
+
+##### `/canciones/filtrar`
+- `genero`: filtro exacto de género.
+- `min_energia`: valor mínimo de energy.
+- `min_valencia`: valor mínimo de valence.
+- `es_explicita`: `true` o `false`.
+
+> El endpoint `/canciones/filtrar` limita el resultado a 50 canciones.
 
 ---
 
