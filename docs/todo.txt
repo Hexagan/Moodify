@@ -1,9 +1,15 @@
-- Definir requisitos funcionales
-- Definir requisitos no funcionales
-- Crear manual de usuario
-- Crear documentación técnica
-- Documentar endpoints de la API
-- Documentar estructura de base de datos
-- Preparar presentación final
-- Agregar capturas del sistema
-- Elaborar casos de prueba
+✅ Definir requisitos funcionales → docs/requisitos-funcionales.md
+✅ Definir requisitos no funcionales → docs/requisitos-funcionales.md
+✅ Crear manual de usuario → docs/manual-usuario.md
+✅ Crear documentación técnica → docs/documentacion-tecnica.md (extendida)
+✅ Documentar endpoints de la API → docs/diccionario-datos.md
+✅ Documentar estructura de base de datos → docs/diccionario-datos.md
+✅ Elaborar casos de prueba → docs/casos-prueba.md
+✅ Crear guía de instalación → docs/guia-instalacion.md
+✅ Actualizar README principal → README.md (expandido)
+
+PENDIENTE:
+- Preparar presentación final (slides/presentacion.pptx)
+- Agregar capturas del sistema (screenshots/)
+- Registrar videos de demostración
+- Preparar dossier académico final
