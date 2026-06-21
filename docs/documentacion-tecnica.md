@@ -347,7 +347,165 @@ LIMIT 10;
 
 ---
 
-## 8. Equipo de Desarrollo
+---
+
+## 8. Testing y Validación
+
+### 8.1 Estrategia de pruebas
+
+El proyecto utiliza una estrategia de testing manual documentada en `docs/casos-prueba.md`.
+
+#### Niveles de prueba
+
+| Nivel | Tipo | Herramienta | Cobertura |
+|-------|------|-----------|-----------|
+| Unitaria | Validación de schemas Pydantic | pytest (opcional) | Models, Schemas |
+| Integración | Endpoints API | Postman / FastAPI docs | Routers, DB queries |
+| E2E | Flujos de usuario completos | Manual / Browser | Pantallas, búsqueda, filtros |
+
+### 8.2 Ejecución de pruebas
+
+**Backend:**
+```bash
+# Pruebas unitarias (si se implementan)
+pytest backend/
+
+# Pruebas manuales con FastAPI docs
+http://localhost:8000/docs
+```
+
+**Frontend:**
+```bash
+# Validación de sintaxis ESLint
+npm run lint
+
+# Pruebas manuales: verificar que cada pantalla carga correctamente
+# y que los datos se envían/reciben del backend sin errores
+```
+
+### 8.3 Casos de prueba principales
+
+Ver [`docs/casos-prueba.md`](./casos-prueba.md) para la lista completa de casos de test organizados por módulo.
+
+---
+
+## 9. Despliegue
+
+### 9.1 Despliegue del Backend
+
+**Plataforma:** Puede desplegarse en cualquier servidor con Python 3.x y PostgreSQL.
+
+**Pasos recomendados:**
+
+1. Configurar variables de entorno en un archivo `.env`:
+   ```
+   DATABASE_URL=postgresql://user:password@hostname:5432/moodify
+   ```
+
+2. Instalar dependencias:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Ejecutar servidor con Gunicorn (producción):
+   ```bash
+   gunicorn -w 4 -b 0.0.0.0:8000 backend.main:app
+   ```
+
+### 9.2 Despliegue del Frontend
+
+**Plataforma:** Vercel (actual), o cualquier servidor web estático.
+
+**Pasos en Vercel:**
+
+1. Conectar repositorio GitHub a Vercel.
+2. Configurar variables de entorno:
+   ```
+   VITE_API_BASE_URL=https://api.tudominio.com
+   ```
+3. Build command: `npm run build`
+4. Output directory: `dist`
+
+**Generación local de build:**
+```bash
+cd frontend
+npm run build
+# Los archivos están en frontend/dist/
+```
+
+### 9.3 Configuración de base de datos en producción
+
+```bash
+# Crear DB
+createdb moodify
+
+# Restaurar desde backup (si existe)
+psql moodify < database/moodify.backup
+
+# O ejecutar schema
+psql moodify < database/schema.sql
+```
+
+---
+
+## 10. Troubleshooting
+
+### 10.1 Errores comunes
+
+| Error | Causa | Solución |
+|-------|-------|----------|
+| `ConnectionRefusedError: 111` | PostgreSQL no está corriendo | `sudo systemctl start postgresql` (Linux) o iniciar PostgreSQL Desktop (Windows) |
+| `SQLALCHEMY_DATABASE_URL not found` | Falta importar `database.py` en `main.py` | Verificar que `import database` esté en `backend/main.py` |
+| `CORS error en el navegador` | Frontend no está en lista blanca de CORS | Agregar URL a `allow_origins` en `backend/main.py` |
+| `404 Not Found` en `/docs` | Backend no está corriendo | Ejecutar `uvicorn backend.main:app --reload` |
+| `Axios GET returns empty array` | Query params malformados | Revisar sintaxis en `frontend/src/services/api.js` |
+
+### 10.2 Verificación de conectividad
+
+**Backend a BD:**
+```bash
+# Desde backend/
+python -c "from database import SessionLocal; db = SessionLocal(); print('OK')"
+```
+
+**Frontend a Backend:**
+```javascript
+// En la consola del navegador
+fetch('http://localhost:8000/canciones').then(r => r.json()).then(d => console.log(d))
+```
+
+---
+
+## 11. Roadmap y Mejoras Futuras
+
+### 11.1 Funcionalidades pendientes
+
+- [ ] Implementar ABM completo (crear, editar, eliminar canciones desde UI).
+- [ ] Agregar autenticación de usuarios.
+- [ ] Módulo de reportes descargables (PDF, CSV).
+- [ ] Integración con Spotify API para actualizar datos en tiempo real.
+- [ ] Historial de búsquedas y favoritos de usuario.
+- [ ] Recomendaciones personalizadas basadas en historial.
+
+### 11.2 Mejoras técnicas
+
+- [ ] Tests unitarios e integración con pytest.
+- [ ] Caché con Redis para queries frecuentes.
+- [ ] Compresión gzip de respuestas API.
+- [ ] Paginación cursor-based en lugar de offset/limit.
+- [ ] Validación de datos más estricta en Pydantic schemas.
+- [ ] Logs estructurados (JSON) en backend.
+
+### 11.3 Escalabilidad
+
+- [ ] Migración a arquitectura de microservicios.
+- [ ] Contenarización con Docker.
+- [ ] Despliegue con Kubernetes.
+- [ ] CDN para assets estáticos del frontend.
+
+---
+
+## 12. Equipo de Desarrollo
 
 | Integrante | Rol | Tecnología | Responsabilidades |
 |-----------|-----|-----------|-------------------|
