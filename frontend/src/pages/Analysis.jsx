@@ -29,19 +29,19 @@ function Analysis() {
 
                     <KpiCard
                         icon={<BarChartLine />}
-                        value="22"
+                        value="114"
                         label="Géneros analizados"
                     />
 
                     <KpiCard
                         icon={<GraphUpArrow />}
-                        value="Pop"
+                        value="K-Pop"
                         label="Género más popular"
                     />
 
                     <KpiCard
                         icon={<LightningCharge />}
-                        value="EDM"
+                        value="Death Metal"
                         label="Mayor energía media"
                     />
 

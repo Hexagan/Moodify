@@ -1,0 +1,32 @@
+.audio-slider{
+    margin-bottom:22px;
+}
+
+.audio-slider-label{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:8px;
+    font-size:14px;
+    color:#A6A9C8;
+}
+
+.audio-slider-range{
+    color:#5c5f80;
+    font-size:12px;
+}
+
+.required{
+    color:#ff4d4d;
+    margin-left:2px;
+}
+
+.audio-slider-value{
+    color:#a93dff;
+    font-weight:700;
+}
+
+.audio-slider input[type="range"]{
+    width:100%;
+    accent-color:#a93dff;
+}

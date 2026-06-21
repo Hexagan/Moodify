@@ -80,3 +80,33 @@ export async function getCancionesCountFull({ genero, busqueda }) {
     const res = await fetch(`${BASE_URL}/canciones/count?${params}`);
     return res.json();
 }
+
+export async function searchCanciones(query) {
+    if (!query) return [];
+    return getCancionesFull({ page: 1, pageSize: 8, busqueda: query });
+}
+
+export async function crearCancion(data) {
+    const res = await fetch(`${BASE_URL}/canciones`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+    return res.json();
+}
+
+export async function modificarCancion(id, data) {
+    const res = await fetch(`${BASE_URL}/canciones/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+    return res.json();
+}
+
+export async function eliminarCancion(id) {
+    const res = await fetch(`${BASE_URL}/canciones/${id}`, {
+        method: "DELETE"
+    });
+    return res.json();
+}

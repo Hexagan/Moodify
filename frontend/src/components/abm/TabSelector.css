@@ -1,0 +1,31 @@
+.tab-selector{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:16px;
+}
+
+.tab-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    padding:18px;
+    background:#101126;
+    border:1px solid #24264d;
+    border-radius:18px;
+    color:#A6A9C8;
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.tab-btn:hover{
+    border-color:#8b5cf6;
+}
+
+.tab-btn.active{
+    border-color:#8b5cf6;
+    background:rgba(139,92,246,0.1);
+    color:white;
+}

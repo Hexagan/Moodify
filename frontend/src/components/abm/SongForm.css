@@ -1,0 +1,140 @@
+.song-form{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:24px;
+}
+
+.form-column{
+    background:#101126;
+    border:1px solid #24264d;
+    border-radius:20px;
+    padding:24px;
+}
+
+.form-column h4{
+    margin:0 0 18px;
+    font-size:20px;
+}
+
+.song-form label{
+    display:block;
+    margin-bottom:6px;
+    color:#A6A9C8;
+    font-size:14px;
+}
+
+.song-form input,
+.song-form select,
+.song-form textarea{
+    width:100%;
+    padding:12px 14px;
+    margin-bottom:6px;
+    background:#0f1126;
+    border:1px solid #24264d;
+    border-radius:12px;
+    color:white;
+    font-size:14px;
+    box-sizing:border-box;
+}
+
+.song-form textarea{
+    min-height:100px;
+    resize:vertical;
+}
+
+.form-row{
+    display:flex;
+    gap:14px;
+}
+
+.form-field{
+    flex:1;
+}
+
+.field-error{
+    display:block;
+    color:#ff6b6b;
+    font-size:12px;
+    margin:-2px 0 14px;
+}
+
+.explicit-field{
+    display:flex;
+    flex-direction:column;
+}
+
+.toggle{
+    width:42px;
+    height:24px;
+    border-radius:999px;
+    background:#24264d;
+    border:none;
+    cursor:pointer;
+    position:relative;
+    padding:0;
+}
+
+.toggle.on{
+    background:#7c5cff;
+}
+
+.toggle-dot{
+    position:absolute;
+    top:3px;
+    left:3px;
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background:white;
+    transition:.2s;
+}
+
+.toggle.on .toggle-dot{
+    left:21px;
+}
+
+.toggle-label{
+    display:block;
+    margin-top:4px;
+    font-size:13px;
+    color:#A6A9C8;
+}
+
+.form-actions{
+    grid-column:1 / -1;
+    display:flex;
+    justify-content:flex-end;
+    gap:12px;
+}
+
+.submit-btn, .cancel-btn{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:12px 22px;
+    border-radius:12px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.submit-btn{
+    background:#7c5cff;
+    border:1px solid #7c5cff;
+    color:white;
+}
+
+.submit-btn:hover{
+    background:#6a4ce0;
+}
+
+.cancel-btn{
+    background:transparent;
+    border:1px solid #24264d;
+    color:#A6A9C8;
+}
+
+.cancel-btn:hover{
+    border-color:#ff4d4d;
+    color:#ff6b6b;
+}

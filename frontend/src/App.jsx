@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import Catalog from "./pages/Catalog";
 import Analysis from "./pages/Analysis";
 import BioImpact from "./pages/BioImpact";
+import ABM from "./pages/ABM";
 
 
 function App() {
@@ -34,6 +35,11 @@ function App() {
                 <Route
                     path="/bioimpacto"
                     element={<BioImpact />}
+                />
+
+                <Route
+                    path="/abm"
+                    element={<ABM />}
                 />
 
             </Routes>

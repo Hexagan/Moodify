@@ -1,7 +1,10 @@
 import "./Topbar.css";
 import { Search } from "react-bootstrap-icons";
+import { useNavigate } from "react-router-dom";
 
 function Topbar({ title, searchValue, onSearchChange }) {
+
+    const navigate = useNavigate();
 
     return (
         <header className="topbar">
@@ -24,7 +27,7 @@ function Topbar({ title, searchValue, onSearchChange }) {
 
                 </div>
 
-                <button className="add-button">
+                <button className="add-button" onClick={() => navigate("/abm")}>
                     + Agregar canciones
                 </button>
 

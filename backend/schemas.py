@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional
 
 class CancionRespuesta(BaseModel):
@@ -34,6 +34,27 @@ class CancionCreate(BaseModel):
     loudness: float
     acousticness: float
     valence: float
+
+    @field_validator("loudness")
+    @classmethod
+    def loudness_must_be_negative(cls, v):
+        if v > 0:
+            raise ValueError("loudness debe ser un valor negativo o cero")
+        return v
+
+    @field_validator("popularity")
+    @classmethod
+    def popularity_range(cls, v):
+        if not (0 <= v <= 100):
+            raise ValueError("popularity debe estar entre 0 y 100")
+        return v
+
+    @field_validator("danceability", "energy", "acousticness", "valence")
+    @classmethod
+    def normalized_range(cls, v):
+        if not (0.0 <= v <= 1.0):
+            raise ValueError("debe estar entre 0.0 y 1.0")
+        return v
 
 class GenreStat(BaseModel):
     genre: str

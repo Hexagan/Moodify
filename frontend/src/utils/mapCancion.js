@@ -1,11 +1,13 @@
 export function mapCancion(c) {
     return {
         id: c.id,
+        track_id: c.track_id,
         title: c.track_name,
         artist: c.artists,
         genre: c.track_genre,
         valence: c.valence,
         energy: c.energy,
+        danceability: c.danceability,
         popularity: c.popularity,
         duration: formatDuration(c.duration_ms),
         explicit: c.explicit,

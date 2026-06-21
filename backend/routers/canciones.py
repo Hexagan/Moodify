@@ -41,6 +41,8 @@ def obtener_canciones(
     if sort_by in SORT_FIELDS:
         column = SORT_FIELDS[sort_by]
         consulta = consulta.order_by(desc(column) if order == "desc" else asc(column))
+    else:
+        consulta = consulta.order_by(models.Cancion.id.desc())
 
     offset = (page - 1) * page_size
     return consulta.offset(offset).limit(page_size).all()
