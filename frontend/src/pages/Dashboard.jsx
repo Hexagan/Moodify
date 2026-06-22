@@ -9,7 +9,7 @@ import RecentSongsTable from "../components/dashboard/RecentSongsTable";
 import GenreDistributionChart from "../components/dashboard/GenreDistributionChart";
 import CatalogGrowthChart from "../components/dashboard/CatalogGrowthChart";
 import StarRating from "../components/common/StarRating";
-
+import TopGenresChart from "../components/analysis/TopGenresChart";
 import { getKpis } from "../services/api";
 
 import {
@@ -18,6 +18,7 @@ import {
     LightningCharge,
     Star
 } from "react-bootstrap-icons";
+
 
 function Dashboard() {
 
@@ -80,7 +81,7 @@ function Dashboard() {
                         title="Popularidad promedio por género"
                         subtitle="% del catálogo"
                     >
-                        <GenreDistributionChart />
+                        <TopGenresChart />
                     </ChartCard>
 
                 </div>
