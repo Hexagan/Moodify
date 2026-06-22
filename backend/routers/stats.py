@@ -89,7 +89,7 @@ def loudness_by_genre(db: Session = Depends(database.get_db)):
     )
     return [{"genre": genre, "value": round(loudness, 1)} for genre, loudness in rows]
 
-BIO_IMPACT_GENRES = ["jazz", "rock-n-roll", "blues", "gospel", "k-pop", "funk", "electro"]
+BIO_IMPACT_GENRES = ["jazz", "rock-n-roll", "blues", "gospel", "k-pop", "funk", "electro", "ambient"]
 
 @router.get("/acoustic-index", response_model=list[schemas.GenreStat])
 def acoustic_index(db: Session = Depends(database.get_db)):
