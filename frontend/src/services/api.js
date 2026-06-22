@@ -83,7 +83,14 @@ export async function getCancionesCountFull({ genero, busqueda }) {
 
 export async function searchCanciones(query) {
     if (!query) return [];
-    return getCancionesFull({ page: 1, pageSize: 8, busqueda: query });
+    const results = await getCancionesFull({ page: 1, pageSize: 30, busqueda: query });
+    const seen = new Set();
+    return results.filter((song) => {
+        const key = song.track_name?.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
 }
 
 export async function crearCancion(data) {

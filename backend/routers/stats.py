@@ -10,10 +10,31 @@ router = APIRouter(prefix="/stats", tags=["Estadísticas"])
 
 @router.get("/kpis", response_model=schemas.KpiStats)
 def kpis(db: Session = Depends(database.get_db)):
-    total = db.query(func.count(models.Cancion.id)).scalar()
-    avg_valence = db.query(func.avg(models.Cancion.valence)).scalar() or 0
-    avg_energy = db.query(func.avg(models.Cancion.energy)).scalar() or 0
-    avg_popularity = db.query(func.avg(models.Cancion.popularity)).scalar() or 0
+
+    best = (
+        db.query(
+            models.Cancion.track_name,
+            models.Cancion.artists,
+            func.max(models.Cancion.popularity).label("max_pop")
+        )
+        .group_by(models.Cancion.track_name, models.Cancion.artists)
+        .subquery()
+    )
+
+    consulta = (
+        db.query(models.Cancion)
+        .join(
+            best,
+            (models.Cancion.track_name == best.c.track_name) &
+            (models.Cancion.artists == best.c.artists) &
+            (models.Cancion.popularity == best.c.max_pop)
+        )
+    )
+
+    total = consulta.distinct().count()
+    avg_valence = consulta.with_entities(func.avg(models.Cancion.valence)).scalar() or 0
+    avg_energy = consulta.with_entities(func.avg(models.Cancion.energy)).scalar() or 0
+    avg_popularity = consulta.with_entities(func.avg(models.Cancion.popularity)).scalar() or 0
 
     return {
         "total_songs": total,
@@ -112,6 +133,14 @@ def top_acoustic_songs(db: Session = Depends(database.get_db)):
         .all()
     )
 
+PSYCH_MAP_GENRES = [
+    "classical", "jazz", "acoustic", "sleep", "ambient", "new-age",
+    "blues", "gospel", "folk", "singer-songwriter",
+    "pop", "latin", "indie-pop", "cantopop", "romance",
+    "rock", "hard-rock", "punk-rock", "metal", "edm",
+    "hip-hop", "dance", "party", "happy", "sad"
+]
+
 @router.get("/psych-map")
 def psych_map(db: Session = Depends(database.get_db)):
     avg_valence = (db.query(func.avg(models.Cancion.valence)).scalar() or 0) * 100
@@ -123,8 +152,8 @@ def psych_map(db: Session = Depends(database.get_db)):
             func.avg(models.Cancion.valence),
             func.avg(models.Cancion.energy)
         )
+        .filter(models.Cancion.track_genre.in_(PSYCH_MAP_GENRES))
         .group_by(models.Cancion.track_genre)
-        .limit(20)
         .all()
     )
 

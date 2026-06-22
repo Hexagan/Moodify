@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func, asc, desc
+from sqlalchemy import func, asc, desc, or_
 from typing import Optional
 
 import database
@@ -16,6 +16,37 @@ SORT_FIELDS = {
     "duracion": models.Cancion.duration_ms,
 }
 
+def apply_search(consulta, busqueda: str):
+    normalized = func.unaccent(func.lower(busqueda))
+    return consulta.filter(
+        or_(
+            func.unaccent(func.lower(models.Cancion.track_name)).contains(normalized),
+            func.unaccent(func.lower(models.Cancion.artists)).contains(normalized)
+        )
+    )
+
+def dedup_subquery(db):
+    return (
+        db.query(
+            models.Cancion.track_name,
+            models.Cancion.artists,
+            func.max(models.Cancion.popularity).label("max_pop")
+        )
+        .group_by(models.Cancion.track_name, models.Cancion.artists)
+        .subquery()
+    )
+
+def join_dedup(db, best):
+    return (
+        db.query(models.Cancion)
+        .join(
+            best,
+            (models.Cancion.track_name == best.c.track_name) &
+            (models.Cancion.artists == best.c.artists) &
+            (models.Cancion.popularity == best.c.max_pop)
+        )
+    )
+
 @router.get("", response_model=list[schemas.CancionRespuesta])
 def obtener_canciones(
     page: int = Query(1, ge=1),
@@ -26,17 +57,13 @@ def obtener_canciones(
     busqueda: Optional[str] = None,
     db: Session = Depends(database.get_db)
 ):
-    consulta = db.query(models.Cancion)
+    consulta = join_dedup(db, dedup_subquery(db))
 
     if genero and genero != "todos":
         consulta = consulta.filter(models.Cancion.track_genre == genero)
 
     if busqueda:
-        like = f"%{busqueda}%"
-        consulta = consulta.filter(
-            (models.Cancion.track_name.ilike(like)) |
-            (models.Cancion.artists.ilike(like))
-        )
+        consulta = apply_search(consulta, busqueda)
 
     if sort_by in SORT_FIELDS:
         column = SORT_FIELDS[sort_by]
@@ -45,7 +72,23 @@ def obtener_canciones(
         consulta = consulta.order_by(models.Cancion.id.desc())
 
     offset = (page - 1) * page_size
-    return consulta.offset(offset).limit(page_size).all()
+    return consulta.distinct().offset(offset).limit(page_size).all()
+
+@router.get("/count")
+def contar_canciones(
+    genero: Optional[str] = None,
+    busqueda: Optional[str] = None,
+    db: Session = Depends(database.get_db)
+):
+    consulta = join_dedup(db, dedup_subquery(db))
+
+    if genero and genero != "todos":
+        consulta = consulta.filter(models.Cancion.track_genre == genero)
+
+    if busqueda:
+        consulta = apply_search(consulta, busqueda)
+
+    return {"total": consulta.distinct().count()}
 
 @router.get("/filtrar", response_model=list[schemas.CancionRespuesta])
 def filtrar_canciones(
@@ -116,26 +159,6 @@ def recomendar_canciones(emocion: str, db: Session = Depends(database.get_db)):
         return []
 
     return consulta.order_by(models.Cancion.popularity.desc()).limit(10).all()
-
-@router.get("/count")
-def contar_canciones(
-    genero: Optional[str] = None,
-    busqueda: Optional[str] = None,
-    db: Session = Depends(database.get_db)
-):
-    consulta = db.query(models.Cancion)
-
-    if genero and genero != "todos":
-        consulta = consulta.filter(models.Cancion.track_genre == genero)
-
-    if busqueda:
-        like = f"%{busqueda}%"
-        consulta = consulta.filter(
-            (models.Cancion.track_name.ilike(like)) |
-            (models.Cancion.artists.ilike(like))
-        )
-
-    return {"total": consulta.count()}
 
 @router.get("/random", response_model=list[schemas.CancionRespuesta])
 def canciones_aleatorias(db: Session = Depends(database.get_db)):
