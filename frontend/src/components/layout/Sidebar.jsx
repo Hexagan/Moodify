@@ -1,5 +1,7 @@
 import logo from "../../assets/logo-noBG.png";
 import "./Sidebar.css";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 import {
     House,
@@ -15,6 +17,19 @@ import {
 import { NavLink } from "react-router-dom";
 
 function Sidebar() {
+    const { user, profile, isAdmin, logout } = useAuth();
+    const navigate = useNavigate();
+
+    async function handleLogout() {
+        await logout();
+        navigate("/login");
+    }
+
+    const displayName = profile?.display_name || user?.displayName || "Usuario";
+    const photoUrl = profile?.photo_url || user?.photoURL;
+    const roleLabel = profile?.role === "dev" ? "Administrador" : "Usuario";
+    const initials = displayName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "?";
+
     return (
         <aside className="sidebar">
 
@@ -22,17 +37,17 @@ function Sidebar() {
                 <img src={logo} alt="Logo" className="logo-image" />
             </div>
 
-            <div className="user-card">
-
+            <div className="user-card" onClick={() => navigate(`/perfil/${user?.uid}`)} style={{ cursor: "pointer" }}>
                 <div className="avatar">
-                    AP
+                    {photoUrl
+                        ? <img src={photoUrl} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:"50%" }} />
+                        : initials
+                    }
                 </div>
-
                 <div className="user-info">
-                    <h4>Ana Perez</h4>
-                    <span>Investigadora</span>
+                    <h4>{displayName}</h4>
+                    <span>{roleLabel}</span>
                 </div>
-
             </div>
 
             <div className="menu-section">
@@ -63,10 +78,12 @@ function Sidebar() {
                         <span>Bio-impacto</span>
                     </NavLink>
 
-                    <NavLink to="/abm" className="nav-item">
-                        <ListTask />
-                        <span>ABM Canciones</span>
-                    </NavLink>
+                    {isAdmin && (
+                        <NavLink to="/abm" className="nav-item">
+                            <ListTask />
+                            <span>ABM Canciones</span>
+                        </NavLink>
+                    )}
 
                 </nav>
 
@@ -90,10 +107,10 @@ function Sidebar() {
                     <span>Configuración</span>
                 </span>
 
-                <span className="nav-item disabled">
+                <button className="nav-item logout-item" onClick={handleLogout}>
                     <BoxArrowRight />
                     <span>Cerrar sesión</span>
-                </span>
+                </button>
 
             </nav>
 

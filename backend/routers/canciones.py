@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func, asc, desc, or_
 from typing import Optional
@@ -178,3 +178,10 @@ def obtener_generos(db: Session = Depends(database.get_db)):
         .all()
     )
     return [g[0] for g in rows]
+
+@router.get("/{cancion_id}", response_model=schemas.CancionRespuesta)
+def obtener_cancion(cancion_id: int, db: Session = Depends(database.get_db)):
+    cancion = db.query(models.Cancion).filter(models.Cancion.id == cancion_id).first()
+    if not cancion:
+        raise HTTPException(status_code=404, detail="Canción no encontrada")
+    return cancion

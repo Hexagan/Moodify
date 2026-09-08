@@ -122,3 +122,8 @@
     justify-self:center;
 
 }
+
+.song-title-link:hover{
+    color:#9b5cff;
+    text-decoration:underline;
+}

@@ -206,3 +206,17 @@ margin-top:auto;
 .sidebar .nav-item.disabled:hover{
     background:none;
 }
+
+.sidebar button.nav-item{
+    width:100%;
+    background:none;
+    border:none;
+    font-family:inherit;
+    cursor:pointer;
+    text-align:left;
+}
+
+.sidebar .nav-item.logout-item:hover{
+    background:rgba(255,77,77,0.1);
+    color:#ff8888;
+}

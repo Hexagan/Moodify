@@ -1,10 +1,12 @@
 import "./Topbar.css";
 import { Search } from "react-bootstrap-icons";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 function Topbar({ title, searchValue, onSearchChange }) {
 
     const navigate = useNavigate();
+    const { isAdmin } = useAuth();
 
     return (
         <header className="topbar">
@@ -27,9 +29,11 @@ function Topbar({ title, searchValue, onSearchChange }) {
 
                 </div>
 
-                <button className="add-button" onClick={() => navigate("/abm")}>
-                    + Agregar canciones
-                </button>
+                {isAdmin && (
+                    <button className="add-button" onClick={() => navigate("/abm")}>
+                        + Agregar canciones
+                    </button>
+                )}
 
             </div>
 

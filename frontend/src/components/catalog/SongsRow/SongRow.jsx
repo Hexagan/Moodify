@@ -25,12 +25,9 @@ function SongRow({ song }) {
 
         <div className="song-row">
 
-            <div className="song-info">
-
-                <h4>{song.title}</h4>
-
+            <div className="song-info" onClick={() => navigate(`/cancion/${song.id}`)} style={{ cursor: "pointer" }}>
+                <h4 className="song-title-link">{song.title}</h4>
                 <span>{song.artist}</span>
-
             </div>
 
             <GenreBadge genre={song.genre}/>
