@@ -78,6 +78,9 @@ function YouTubeDock() {
                 const target = document.createElement("div");
                 hostRef.current.appendChild(target);
                 new YT.Player(target, {
+                    // Privacy-enhanced mode: YouTube sets no tracking cookies until the user
+                    // interacts with the video itself.
+                    host: "https://www.youtube-nocookie.com",
                     width: "100%",
                     height: "100%",
                     videoId: wantedRef.current,

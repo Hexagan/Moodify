@@ -1,8 +1,13 @@
 .mapa-emocional-page{
     display:grid;
-    grid-template-columns:2fr 1fr;
+    /* minmax(0, …): a long title or artist list ends in "…" instead of widening its column. */
+    grid-template-columns:minmax(0, 2fr) minmax(0, 1fr);
     gap:24px;
     align-items:start;
+}
+
+.mapa-emocional-page > *{
+    min-width:0;
 }
 
 .mapa-emocional-graph-card{
@@ -63,8 +68,9 @@
     left:12px;
 }
 
+/* Top corners stay clear: quadrant titles and moods sit at the bottom of each cell. */
 .axis-valence{
-    bottom:10px;
+    top:10px;
     right:12px;
 }
 
@@ -214,6 +220,6 @@
 
 @media (max-width:1000px){
     .mapa-emocional-page{
-        grid-template-columns:1fr;
+        grid-template-columns:minmax(0, 1fr);
     }
 }

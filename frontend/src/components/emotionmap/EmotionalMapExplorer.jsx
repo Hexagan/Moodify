@@ -204,8 +204,8 @@ function EmotionalMapExplorer() {
                                 >
                                     <span className="mapa-suggestion-dot" style={{ background: quadrant.color }} />
                                     <div className="mapa-suggestion-info">
-                                        <span className="mapa-suggestion-title">{song.title}</span>
-                                        <span className="mapa-suggestion-artist">{song.artist}</span>
+                                        <span className="mapa-suggestion-title" title={song.title}>{song.title}</span>
+                                        <span className="mapa-suggestion-artist" title={song.artist}>{song.artist}</span>
                                     </div>
                                     <div className="mapa-suggestion-values">
                                         <span>v {song.valence.toFixed(2)}</span>
