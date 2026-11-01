@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { CollectionPlay, PlusLg, CheckLg } from "react-bootstrap-icons";
 
@@ -7,6 +7,8 @@ import VisibilityBadge from "./VisibilityBadge";
 import { useSettings } from "../../context/SettingsContext";
 import { getUserPlaylists, createPlaylist, addSongToPlaylist, removeSongFromPlaylist } from "../../services/api";
 import "./Playlists.css";
+
+const EDGE_GAP = 12;
 
 // "Agregar a playlist" on the song page: tick/untick the user's playlists, or create one
 // on the spot (the song goes straight into it).
@@ -19,6 +21,25 @@ function AddToPlaylist({ uid, songId }) {
     const [busyId, setBusyId] = useState(null);
     const [error, setError] = useState(null);
     const rootRef = useRef(null);
+    const panelRef = useRef(null);
+
+    // The panel opens aligned with the button's left edge; when the button sits near the right
+    // edge of the window, slide the panel left so it never causes horizontal scrolling.
+    useLayoutEffect(() => {
+        const panel = panelRef.current;
+        if (!open || !panel) return;
+        function fit() {
+            panel.style.transform = "";
+            const rect = panel.getBoundingClientRect();
+            const viewport = document.documentElement.clientWidth;
+            const overflow = rect.right - (viewport - EDGE_GAP);
+            const shift = overflow > 0 ? Math.min(overflow, rect.left - EDGE_GAP) : 0;
+            if (shift > 0) panel.style.transform = `translateX(${-shift}px)`;
+        }
+        fit();
+        window.addEventListener("resize", fit);
+        return () => window.removeEventListener("resize", fit);
+    }, [open, creating, lists]);
 
     useEffect(() => {
         if (!open) return;
@@ -93,7 +114,7 @@ function AddToPlaylist({ uid, songId }) {
             </button>
 
             {open && (
-                <div className="add-to-playlist-panel" role="dialog" aria-label="Agregar a una playlist">
+                <div className="add-to-playlist-panel" ref={panelRef} role="dialog" aria-label="Agregar a una playlist">
 
                     {creating ? (
                         <PlaylistForm
