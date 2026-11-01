@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 import database
 import models
+import storage
 
 router = APIRouter(prefix="/media", tags=["Media"])
 
@@ -26,8 +27,6 @@ TIMEOUT = 6
 DEEZER_URL_TTL = timedelta(hours=6)
 NOT_FOUND_RETRY = timedelta(days=7)
 
-SONG_UPLOAD_DIR = os.path.join("uploads", "songs")
-os.makedirs(SONG_UPLOAD_DIR, exist_ok=True)
 COVER_MAX_BYTES = 5 * 1024 * 1024
 AUDIO_MAX_BYTES = 15 * 1024 * 1024
 
@@ -356,26 +355,33 @@ _SIGNATURES = {
 }
 
 
-def _store_upload(upload, allowed, limit):
-    # Judged by content, not by the file name or the browser-supplied type.
-    data = upload.file.read(limit + 1)
-    ext = next((k for k in allowed if _SIGNATURES[k](data[:16])), None)
-    if ext is None:
-        raise HTTPException(status_code=415, detail=f"Formato no admitido. Usá {', '.join(a.upper() for a in allowed)}.")
-    if len(data) > limit:
+_CONTENT_TYPES = {
+    "jpg": "image/jpeg", "png": "image/png", "webp": "image/webp",
+    "mp3": "audio/mpeg", "m4a": "audio/mp4", "ogg": "audio/ogg", "wav": "audio/wav",
+}
+
+
+def _store_upload(db, upload, blob_url, allowed, limit):
+    """A file sent with the form, or (hosted) the Blob URL the browser uploaded it to.
+    Judged by content, not by the file name or the browser-supplied type."""
+    if blob_url and db.query(models.SongMedia.track_id).filter(
+        (models.SongMedia.thumbnail_url == blob_url) | (models.SongMedia.preview_url == blob_url)
+    ).first() is not None:
+        raise HTTPException(status_code=400, detail="El archivo subido no es válido.")
+    incoming = storage.receive(upload, blob_url, "songs", limit)
+    if incoming is None:
+        return None
+    ext = next((k for k in allowed if _SIGNATURES[k](incoming.head)), None)
+    if ext is None or incoming.size > limit:
+        storage.discard(incoming)
+        if ext is None:
+            raise HTTPException(status_code=415, detail=f"Formato no admitido. Usá {', '.join(a.upper() for a in allowed)}.")
         raise HTTPException(status_code=413, detail=f"El archivo supera el máximo de {limit // (1024 * 1024)} MB.")
-    name = f"{uuid.uuid4().hex}.{ext}"
-    with open(os.path.join(SONG_UPLOAD_DIR, name), "wb") as out:
-        out.write(data)
-    return f"/uploads/songs/{name}"
+    return storage.keep(incoming, "songs", f"{uuid.uuid4().hex}.{ext}", _CONTENT_TYPES[ext])
 
 
 def _delete_song_upload(url):
-    if url and url.startswith("/uploads/songs/"):
-        try:
-            os.remove(os.path.join(SONG_UPLOAD_DIR, os.path.basename(url)))
-        except OSError:
-            pass
+    storage.delete(url)
 
 
 def _media_dict(media, track_id):
@@ -400,9 +406,11 @@ def actualizar_media(
     track_id: str,
     admin_uid: str = Form(...),
     cover: Optional[UploadFile] = File(None),
+    cover_blob: Optional[str] = Form(None),
     cover_url: Optional[str] = Form(None),
     remove_cover: bool = Form(False),
     preview: Optional[UploadFile] = File(None),
+    preview_blob: Optional[str] = Form(None),
     preview_url: Optional[str] = Form(None),
     remove_preview: bool = Form(False),
     youtube: Optional[str] = Form(None),
@@ -421,12 +429,13 @@ def actualizar_media(
     # rejected, the first one is removed again instead of being left orphaned on disk.
     new_cover = new_preview = None
     try:
-        if cover is not None and cover.filename:
-            new_cover = _store_upload(cover, ("jpg", "png", "webp"), COVER_MAX_BYTES)
-        if preview is not None and preview.filename:
-            new_preview = _store_upload(preview, ("mp3", "m4a", "ogg", "wav"), AUDIO_MAX_BYTES)
+        new_cover = _store_upload(db, cover, cover_blob, ("jpg", "png", "webp"), COVER_MAX_BYTES)
+        new_preview = _store_upload(db, preview, preview_blob, ("mp3", "m4a", "ogg", "wav"), AUDIO_MAX_BYTES)
     except HTTPException:
         _delete_song_upload(new_cover)
+        # A cover rejected first leaves the browser's preview upload behind otherwise.
+        if new_preview is None and preview_blob and storage.is_own_blob(preview_blob, "songs"):
+            _delete_song_upload(preview_blob)
         raise
     if not new_cover and cover_url and cover_url.startswith("https://"):
         new_cover = cover_url

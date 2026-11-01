@@ -1,4 +1,5 @@
 import { appendRangeParams } from "../utils/catalogRanges";
+import { appendUpload } from "../utils/uploads";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -51,7 +52,8 @@ export async function updateSongMedia(trackId, adminUid, fields) {
     formData.append("admin_uid", adminUid);
     for (const [key, value] of Object.entries(fields)) {
         if (value === undefined || value === null || value === false || value === "") continue;
-        formData.append(key, value === true ? "true" : value);
+        if (value instanceof File) await appendUpload(formData, key, value, { folder: "songs", uid: adminUid });
+        else formData.append(key, value === true ? "true" : value);
     }
     const res = await fetch(`${BASE_URL}/media/${encodeURIComponent(trackId)}`, { method: "PUT", body: formData });
     return jsonOrThrow(res);
@@ -220,12 +222,12 @@ export async function updateUser(uid, data) {
 
 export async function uploadUserPhoto(uid, file) {
     const formData = new FormData();
-    formData.append("file", file);
+    await appendUpload(formData, "file", file, { folder: "avatars", uid });
     const res = await fetch(`${BASE_URL}/usuarios/${uid}/foto`, {
         method: "POST",
         body: formData
     });
-    const data = await res.json();
+    const data = await jsonOrThrow(res);
     data.photo_url = absolutizePhoto(data.photo_url);
     return data;
 }

@@ -1,4 +1,3 @@
-import os
 import re
 import uuid
 import unicodedata
@@ -11,6 +10,7 @@ from sqlalchemy.orm import Session
 
 import database
 import models
+import storage
 from routers.media import _normalize, _now, _is_fresh, NOT_FOUND_RETRY, TIMEOUT
 from song_queries import deduped_query, rows_to_songs
 
@@ -18,8 +18,6 @@ router = APIRouter(prefix="/artistas", tags=["Artistas"])
 
 HEADERS = {"User-Agent": "Moodify/1.0 (proyecto academico; https://moodify-one-rho.vercel.app)"}
 
-FORUM_DIR = os.path.join("uploads", "forum")
-os.makedirs(FORUM_DIR, exist_ok=True)
 IMAGE_MAX_BYTES = 5 * 1024 * 1024
 VIDEO_MAX_BYTES = 25 * 1024 * 1024
 # HEIF/AVIF stills share the MP4 container signature but aren't videos browsers can play.
@@ -138,11 +136,29 @@ def _resolve_bio(db, artist):
     db.commit()
 
 
-def _save_upload(upload):
-    if upload is None or not upload.filename:
+def _save_upload(db, upload, blob_url):
+    """A file sent with the form, or (hosted) the Blob URL the browser uploaded it to."""
+    if blob_url and _media_in_use(db, blob_url):
+        raise HTTPException(status_code=400, detail="El archivo subido no es válido.")
+    incoming = storage.receive(upload, blob_url, "forum", VIDEO_MAX_BYTES)
+    if incoming is None:
         return None, None
-    data = upload.file.read(VIDEO_MAX_BYTES + 1)
-    head = data[:16]
+    try:
+        return _accept_upload(incoming)
+    except HTTPException:
+        storage.discard(incoming)
+        raise
+
+
+def _media_in_use(db, url):
+    return (
+        db.query(models.ArtistThread.id).filter(models.ArtistThread.media_url == url).first() is not None
+        or db.query(models.ArtistPost.id).filter(models.ArtistPost.media_url == url).first() is not None
+    )
+
+
+def _accept_upload(incoming):
+    head = incoming.head
     if head[:3] == b"\xff\xd8\xff":
         kind, ext = "image", "jpg"
     elif head[:8] == b"\x89PNG\r\n\x1a\n":
@@ -158,20 +174,14 @@ def _save_upload(upload):
     else:
         raise HTTPException(status_code=415, detail="Formato no admitido. Usá JPG, PNG, GIF, WEBP, MP4 o WEBM.")
     limit = IMAGE_MAX_BYTES if kind == "image" else VIDEO_MAX_BYTES
-    if len(data) > limit:
+    if incoming.size > limit:
         raise HTTPException(status_code=413, detail=f"El archivo supera el máximo de {limit // (1024 * 1024)} MB.")
-    name = f"{uuid.uuid4().hex}.{ext}"
-    with open(os.path.join(FORUM_DIR, name), "wb") as out:
-        out.write(data)
-    return f"/uploads/forum/{name}", kind
+    content_type = f"{kind}/{'jpeg' if ext == 'jpg' else ext}"
+    return storage.keep(incoming, "forum", f"{uuid.uuid4().hex}.{ext}", content_type), kind
 
 
 def _delete_upload(media_url):
-    if media_url and media_url.startswith("/uploads/forum/"):
-        try:
-            os.remove(os.path.join(FORUM_DIR, os.path.basename(media_url)))
-        except OSError:
-            pass
+    storage.delete(media_url)
 
 
 def _author(profile):
@@ -237,10 +247,10 @@ def _post_dict(post, author):
     }
 
 
-def _apply_media_edit(record, remove_media, media):
+def _apply_media_edit(db, record, remove_media, media, media_blob):
     """Swap or drop a post's attachment. Returns the replaced file's URL so the caller can
     delete it from disk once the edit is committed."""
-    new_url, new_type = _save_upload(media)
+    new_url, new_type = _save_upload(db, media, media_blob)
     if new_url:
         old = record.media_url
         record.media_url, record.media_type = new_url, new_type
@@ -348,6 +358,7 @@ def responder_hilo(
     author_uid: str = Form(...),
     body: str = Form(""),
     media: Optional[UploadFile] = File(None),
+    media_blob: Optional[str] = Form(None),
     db: Session = Depends(database.get_db),
 ):
     thread = db.get(models.ArtistThread, thread_id)
@@ -357,7 +368,7 @@ def responder_hilo(
     body = body.strip()
     if len(body) > 5000:
         raise HTTPException(status_code=422, detail="La respuesta supera los 5000 caracteres.")
-    media_url, media_type = _save_upload(media)
+    media_url, media_type = _save_upload(db, media, media_blob)
     if not body and not media_url:
         raise HTTPException(status_code=422, detail="Escribí algo o adjuntá una imagen o video.")
 
@@ -379,6 +390,7 @@ def editar_hilo(
     body: str = Form(""),
     remove_media: bool = Form(False),
     media: Optional[UploadFile] = File(None),
+    media_blob: Optional[str] = Form(None),
     db: Session = Depends(database.get_db),
 ):
     thread = db.get(models.ArtistThread, thread_id)
@@ -392,7 +404,7 @@ def editar_hilo(
     if len(body) > 5000:
         raise HTTPException(status_code=422, detail="El mensaje supera los 5000 caracteres.")
 
-    replaced = _apply_media_edit(thread, remove_media, media)
+    replaced = _apply_media_edit(db, thread, remove_media, media, media_blob)
     thread.title, thread.body = title, body or None
     thread.edited_at = func.now()
     db.commit()
@@ -408,6 +420,7 @@ def editar_respuesta(
     body: str = Form(""),
     remove_media: bool = Form(False),
     media: Optional[UploadFile] = File(None),
+    media_blob: Optional[str] = Form(None),
     db: Session = Depends(database.get_db),
 ):
     post = db.get(models.ArtistPost, post_id)
@@ -419,10 +432,10 @@ def editar_respuesta(
     if len(body) > 5000:
         raise HTTPException(status_code=422, detail="La respuesta supera los 5000 caracteres.")
     keeps_media = bool(post.media_url) and not remove_media
-    if not body and not keeps_media and not (media and media.filename):
+    if not body and not keeps_media and not (media and media.filename) and not media_blob:
         raise HTTPException(status_code=422, detail="La respuesta no puede quedar vacía.")
 
-    replaced = _apply_media_edit(post, remove_media, media)
+    replaced = _apply_media_edit(db, post, remove_media, media, media_blob)
     post.body = body or None
     post.edited_at = func.now()
     db.commit()
@@ -513,6 +526,7 @@ def crear_hilo(
     title: str = Form(...),
     body: str = Form(""),
     media: Optional[UploadFile] = File(None),
+    media_blob: Optional[str] = Form(None),
     db: Session = Depends(database.get_db),
 ):
     _get_artist(db, artist_id)
@@ -522,7 +536,7 @@ def crear_hilo(
         raise HTTPException(status_code=422, detail="El título debe tener entre 3 y 120 caracteres.")
     if len(body) > 5000:
         raise HTTPException(status_code=422, detail="El mensaje supera los 5000 caracteres.")
-    media_url, media_type = _save_upload(media)
+    media_url, media_type = _save_upload(db, media, media_blob)
 
     thread = models.ArtistThread(artist_id=artist_id, author_uid=author.uid, title=title,
                                  body=body or None, media_url=media_url, media_type=media_type)

@@ -1,16 +1,14 @@
-import os
+import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from typing import Optional
 
-import database, models, schemas
+import database, models, schemas, storage
 
 router = APIRouter(prefix="/usuarios", tags=["Usuarios"])
 
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("", response_model=schemas.UserProfileResponse)
 def crear_o_actualizar_usuario(data: schemas.UserProfileCreate, db: Session = Depends(database.get_db)):
@@ -28,18 +26,43 @@ def crear_o_actualizar_usuario(data: schemas.UserProfileCreate, db: Session = De
     db.refresh(nuevo)
     return nuevo
 
+PHOTO_MAX_BYTES = 5 * 1024 * 1024
+_PHOTO_FORMATS = (
+    ("jpg", "image/jpeg", lambda h: h[:3] == b"\xff\xd8\xff"),
+    ("png", "image/png", lambda h: h[:8] == b"\x89PNG\r\n\x1a\n"),
+    ("gif", "image/gif", lambda h: h[:6] in (b"GIF87a", b"GIF89a")),
+    ("webp", "image/webp", lambda h: h[:4] == b"RIFF" and h[8:12] == b"WEBP"),
+)
+
+
 @router.post("/{uid}/foto", response_model=schemas.UserProfileResponse)
-def actualizar_foto(uid: str, file: UploadFile = File(...), db: Session = Depends(database.get_db)):
+def actualizar_foto(
+    uid: str,
+    file: Optional[UploadFile] = File(None),
+    file_blob: Optional[str] = Form(None),
+    db: Session = Depends(database.get_db),
+):
+    """The photo comes with the form, or (hosted) as the Blob URL the browser uploaded it to."""
     user = db.query(models.UserProfile).filter(models.UserProfile.uid == uid).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    ext = os.path.splitext(file.filename)[1] or ".jpg"
-    filename = f"{uid}{ext}"
-    with open(os.path.join(UPLOAD_DIR, filename), "wb") as f:
-        f.write(file.file.read())
-    user.photo_url = f"/uploads/{filename}"
+    if file_blob and db.query(models.UserProfile.uid).filter(models.UserProfile.photo_url == file_blob).first():
+        raise HTTPException(status_code=400, detail="El archivo subido no es válido.")
+    incoming = storage.receive(file, file_blob, "avatars", PHOTO_MAX_BYTES)
+    if incoming is None:
+        raise HTTPException(status_code=422, detail="Elegí una imagen.")
+    fmt = next((f for f in _PHOTO_FORMATS if f[2](incoming.head)), None)
+    if fmt is None or incoming.size > PHOTO_MAX_BYTES:
+        storage.discard(incoming)
+        if fmt is None:
+            raise HTTPException(status_code=415, detail="Formato no admitido. Usá JPG, PNG, GIF o WEBP.")
+        raise HTTPException(status_code=413, detail="La imagen supera el máximo de 5 MB.")
+    old = user.photo_url
+    user.photo_url = storage.keep(incoming, "avatars", f"{uid}-{uuid.uuid4().hex[:8]}.{fmt[0]}", fmt[1])
     db.commit()
     db.refresh(user)
+    if old and old != user.photo_url:
+        storage.delete(old)
     return user
 
 @router.get("/{uid}", response_model=schemas.UserProfileResponse)

@@ -1,0 +1,7 @@
+.env*
+.vercel/
+__pycache__/
+uploads/
+songs_data.csv
+songs_data.sql
+BACKEND.txt

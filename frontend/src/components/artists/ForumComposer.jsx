@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Paperclip, XCircleFill, Send } from "react-bootstrap-icons";
+import { appendUpload } from "../../utils/uploads";
 import "./Forum.css";
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
@@ -69,12 +70,12 @@ function ForumComposer({
         data.append("author_uid", authorUid);
         if (withTitle) data.append("title", title.trim());
         data.append("body", body.trim());
-        if (file) data.append("media", file);
         if (existingMedia?.url && !keepExisting && !file) data.append("remove_media", "true");
 
         setBusy(true);
         setError(null);
         try {
+            await appendUpload(data, "media", file, { folder: "forum", uid: authorUid });
             await onSubmit(data);
             setTitle("");
             setBody("");
