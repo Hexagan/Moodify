@@ -2,6 +2,10 @@ from pydantic import BaseModel, field_validator
 from datetime import datetime
 from typing import Optional
 
+class ArtistRef(BaseModel):
+    id: int
+    name: str
+
 class CancionRespuesta(BaseModel):
     id: int
     track_id: Optional[str] = None
@@ -19,6 +23,8 @@ class CancionRespuesta(BaseModel):
     valence: Optional[float] = 0.0
     genres: Optional[list[str]] = None
     estado: Optional[str] = None
+    # Only on the single-song endpoint: each credited artist that has an artist page.
+    artist_refs: Optional[list[ArtistRef]] = None
 
     class Config:
         from_attributes = True

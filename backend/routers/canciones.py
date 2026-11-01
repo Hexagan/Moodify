@@ -233,4 +233,11 @@ def obtener_cancion(cancion_id: int, db: Session = Depends(database.get_db)):
     cancion = db.query(models.Cancion).filter(models.Cancion.id == cancion_id).first()
     if not cancion:
         raise HTTPException(status_code=404, detail="Canción no encontrada")
-    return song_with_details(db, cancion)
+    song = song_with_details(db, cancion)
+    # Artist pages are keyed by id; match the credited names (in credit order) to the index.
+    names = split_artists(cancion.artists)
+    ids = dict(
+        db.query(models.Artist.name, models.Artist.id).filter(models.Artist.name.in_(names)).all()
+    ) if names else {}
+    song["artist_refs"] = [{"id": ids[n], "name": n} for n in names if n in ids]
+    return song

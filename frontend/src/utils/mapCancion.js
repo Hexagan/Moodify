@@ -18,7 +18,8 @@ export function mapCancion(c) {
         explicit: c.explicit,
         loudness: c.loudness,
         acousticness: c.acousticness,
-        status: c.estado ?? null
+        status: c.estado ?? null,
+        artistRefs: c.artist_refs ?? []
     };
 }
 

@@ -182,7 +182,19 @@ function SongDetail() {
                     <div className="song-detail-info">
 
                         <h1>{song.title}</h1>
-                        <p className="song-detail-artist">{song.artist}</p>
+                        <p className="song-detail-artist">
+                            {(song.artist || "").split(";").map((name) => name.trim()).filter(Boolean).map((name, i) => {
+                                const ref = song.artistRefs.find((a) => a.name === name);
+                                return (
+                                    <span key={name}>
+                                        {i > 0 && ", "}
+                                        {ref
+                                            ? <Link to={`/artistas/${ref.id}`} className="song-detail-artist-link">{name}</Link>
+                                            : name}
+                                    </span>
+                                );
+                            })}
+                        </p>
 
                         <div className="song-detail-tags">
                             <span className="song-detail-badge" style={{ background: getGenreColor(song.genres[0]) }}>
