@@ -16,9 +16,9 @@
 
     border-radius:10px;
 
-    background:#1d203d;
+    background:var(--bg-elevated);
 
-    color:white;
+    color:var(--text-primary);
 
     cursor:pointer;
 
@@ -28,7 +28,7 @@
 
 .edit-button:hover{
 
-    background:#9B5CFF;
+    background:var(--accent-purple);
 
 }
 

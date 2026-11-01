@@ -8,19 +8,60 @@
 .acoustic-song-row{
     display:flex;
     align-items:center;
-    justify-content:space-between;
+    gap:14px;
 
     padding:16px 18px;
 
-    background:#15172e;
-    border:1px solid #24264d;
+    background:var(--bg-elevated);
+    border:1px solid var(--border);
     border-radius:14px;
 
-    transition:.2s;
+    color:inherit;
+    text-decoration:none;
+    cursor:pointer;
+    transition:background .2s, border-color .2s;
 }
 
 .acoustic-song-row:hover{
-    border-color:#8b5cf6;
+    background:var(--bg-hover);
+    border-color:var(--accent-strong);
+}
+
+.acoustic-song-row:hover h4{
+    color:var(--accent-light);
+}
+
+.acoustic-song-row:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+}
+
+.acoustic-song-info{
+    flex:1;
+    min-width:0;
+}
+
+.acoustic-song-info h4{
+    transition:color .2s;
+}
+
+.acoustic-song-arrow{
+    flex-shrink:0;
+    font-size:16px;
+    color:var(--text-muted);
+    opacity:0;
+    transform:translateX(-6px);
+    transition:opacity .2s, transform .2s;
+}
+
+.acoustic-song-row:hover .acoustic-song-arrow,
+.acoustic-song-row:focus-visible .acoustic-song-arrow{
+    opacity:1;
+    transform:translateX(0);
+}
+
+@media (prefers-reduced-motion: reduce){
+    .acoustic-song-arrow{ transform:none; transition:opacity .2s; }
 }
 
 .acoustic-song-info h4{
@@ -32,13 +73,13 @@
 .acoustic-song-info span{
     display:block;
     margin-top:4px;
-    color:#8b8daa;
+    color:var(--text-muted);
     font-size:13px;
 }
 
 .acoustic-song-value{
     font-size:18px;
     font-weight:700;
-    color:white;
+    color:var(--text-primary);
     flex-shrink:0;
 }

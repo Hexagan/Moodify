@@ -10,10 +10,10 @@
     justify-content:center;
     gap:10px;
     padding:18px;
-    background:#101126;
-    border:1px solid #24264d;
+    background:var(--bg-card);
+    border:1px solid var(--border);
     border-radius:18px;
-    color:#A6A9C8;
+    color:var(--text-secondary);
     font-size:16px;
     font-weight:700;
     cursor:pointer;
@@ -21,11 +21,11 @@
 }
 
 .tab-btn:hover{
-    border-color:#8b5cf6;
+    border-color:var(--accent-strong);
 }
 
 .tab-btn.active{
-    border-color:#8b5cf6;
+    border-color:var(--accent-strong);
     background:rgba(139,92,246,0.1);
-    color:white;
+    color:var(--text-primary);
 }

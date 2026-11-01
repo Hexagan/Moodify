@@ -17,6 +17,8 @@ class CancionRespuesta(BaseModel):
     loudness: Optional[float] = 0.0
     acousticness: Optional[float] = 0.0
     valence: Optional[float] = 0.0
+    genres: Optional[list[str]] = None
+    estado: Optional[str] = None
 
     class Config:
         from_attributes = True

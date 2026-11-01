@@ -5,14 +5,9 @@
 }
 
 body{
-    background:#070714;
-    color:white;
+    background:var(--bg-page);
+    color:var(--text-primary);
     font-family:Inter, sans-serif;
-}
-
-a{
-    text-decoration:none;
-    color:inherit;
 }
 
 button{

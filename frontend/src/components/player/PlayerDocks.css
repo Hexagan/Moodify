@@ -1,0 +1,28 @@
+/* One corner for every player: open docks stack upwards, closed ones step out of the flow. */
+.player-docks{
+    position:fixed;
+    right:24px;
+    bottom:24px;
+    z-index:50;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:12px;
+    pointer-events:none;
+}
+
+.player-docks > *{
+    pointer-events:auto;
+}
+
+@media (max-width:640px){
+    .player-docks{
+        right:16px;
+        bottom:16px;
+    }
+}
+
+/* Keeps the dock from permanently covering the end of a page. */
+.has-player-dock .page-content{
+    padding-bottom:calc(var(--page-pad) + 340px);
+}

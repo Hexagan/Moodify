@@ -1,8 +1,8 @@
 .stat-card{
 
-background:#101126;
+background:var(--bg-card);
 
-border:1px solid #24264d;
+border:1px solid var(--border);
 
 border-radius:18px;
 
@@ -20,7 +20,7 @@ transition:.2s;
 
 .stat-card:hover{
 
-border-color:#8b5cf6;
+border-color:var(--accent-strong);
 
 }
 
@@ -32,7 +32,7 @@ height:54px;
 
 border-radius:50%;
 
-background:#1b1d36;
+background:var(--bg-elevated);
 
 display:flex;
 
@@ -42,7 +42,7 @@ align-items:center;
 
 font-size:28px;
 
-color:#9b5cff;
+color:var(--accent-purple);
 
 }
 
@@ -60,6 +60,6 @@ margin:0;
 
 margin:0;
 
-color:#8b8daa;
+color:var(--text-muted);
 
 }

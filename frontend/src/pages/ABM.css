@@ -14,12 +14,12 @@
 
 .abm-feedback.success{
     background:rgba(51,209,122,0.12);
-    border:1px solid #33d17a;
-    color:#7ef0b0;
+    border:1px solid var(--success);
+    color:var(--success-text);
 }
 
 .abm-feedback.error{
     background:rgba(255,77,77,0.12);
-    border:1px solid #ff4d4d;
-    color:#ffb3b3;
+    border:1px solid var(--danger);
+    color:var(--danger-light);
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import "./RecentSongsTable.css";
 import { ThreeDotsVertical } from "react-bootstrap-icons";
 
@@ -37,7 +38,7 @@ function RecentSongs() {
                         <tr key={song.id}>
 
                             <td>
-                                <div className="song-title">{song.title}</div>
+                                <Link to={`/cancion/${song.id}`} className="song-title song-title-link">{song.title}</Link>
                                 <div className="song-artist">{song.artist}</div>
                             </td>
 

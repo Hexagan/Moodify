@@ -18,7 +18,7 @@
 
     font-weight:600;
 
-    color:white;
+    color:#ffffff;
 
     justify-self:center;
 
@@ -76,6 +76,6 @@
 
 .genre-default{
 
-    background:#5B6078;
+    background:var(--text-dim);
 
 }

@@ -8,11 +8,18 @@
     display:grid;
     grid-template-columns:1.35fr 1fr;
     gap:24px;
-    align-items:start;
+    /* stretch: both columns end level, and the greenhouse grows to absorb whatever height is left */
+    align-items:stretch;
 }
 
 .bioimpact-left{
     display:flex;
     flex-direction:column;
     gap:24px;
+}
+
+@media (max-width:1100px){
+    .bioimpact-grid{
+        grid-template-columns:1fr;
+    }
 }

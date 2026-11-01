@@ -1,0 +1,83 @@
+import { useState, useEffect } from "react";
+import Layout from "../components/layout/Layout";
+
+import "./Reports.css";
+
+import KpiCard from "../components/dashboard/KpiCard";
+import ChartCard from "../components/dashboard/ChartCard";
+import CatalogGrowthChart from "../components/dashboard/CatalogGrowthChart";
+import StarRating from "../components/common/StarRating";
+import TopGenresChart from "../components/analysis/TopGenresChart";
+import { getKpis } from "../services/api";
+
+import { MusicNoteBeamed, EmojiSmile, LightningCharge, Star } from "react-bootstrap-icons";
+
+function Reports() {
+
+    const [kpis, setKpis] = useState(null);
+
+    useEffect(() => {
+        getKpis()
+            .then(setKpis)
+            .catch((err) => console.error("Error al cargar KPIs:", err));
+    }, []);
+
+    return (
+        <Layout title="Reportes">
+
+            <div className="reports-page">
+
+                <div className="kpi-grid">
+
+                    <KpiCard
+                        icon={<MusicNoteBeamed />}
+                        value={kpis ? kpis.total_songs.toLocaleString("es-AR") : "..."}
+                        label="Canciones Totales"
+                    />
+
+                    <KpiCard
+                        icon={<EmojiSmile />}
+                        value={kpis ? kpis.avg_valence : "..."}
+                        label="Valencia media"
+                    />
+
+                    <KpiCard
+                        icon={<LightningCharge />}
+                        value={kpis ? kpis.avg_energy : "..."}
+                        label="Energía promedio"
+                    />
+
+                    <KpiCard
+                        icon={<Star />}
+                        value={kpis ? kpis.avg_popularity : "..."}
+                        label="Popularidad media"
+                        extra={kpis && <StarRating value={kpis.avg_popularity} />}
+                    />
+
+                </div>
+
+                <div className="reports-grid">
+
+                    <ChartCard
+                        title="Crecimiento del catálogo"
+                        subtitle="Nuevas canciones agregadas por mes"
+                    >
+                        <CatalogGrowthChart />
+                    </ChartCard>
+
+                    <ChartCard
+                        title="Popularidad promedio por género"
+                        subtitle="% del catálogo"
+                    >
+                        <TopGenresChart />
+                    </ChartCard>
+
+                </div>
+
+            </div>
+
+        </Layout>
+    );
+}
+
+export default Reports;

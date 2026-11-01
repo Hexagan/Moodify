@@ -6,6 +6,7 @@
 
     grid-template-columns:
         2.5fr
+        84px
         1fr
         .9fr
         .9fr
@@ -18,7 +19,7 @@
 
     padding:18px 22px;
 
-    border-top:1px solid #1d203d;
+    border-top:1px solid var(--bg-elevated);
 
     box-sizing:border-box;
 
@@ -26,7 +27,7 @@
 
 .song-row:hover{
 
-    background:#14172d;
+    background:var(--bg-hover);
 
 }
 
@@ -62,7 +63,7 @@
 
     text-align:left;
 
-    color:#8b8daa;
+    color:var(--text-muted);
 
     font-size:13px;
 
@@ -70,43 +71,12 @@
 
 .song-row>span{
 
-    color:white;
+    color:var(--text-primary);
 
     font-size:15px;
 
     justify-self:center;
 
-}
-
-.valence-badge{
-
-    display:inline-block;
-
-    padding:4px 10px;
-
-    border-radius:12px;
-
-    font-size:13px;
-
-    font-weight:600;
-
-    justify-self:center;
-
-}
-
-.valence-high{
-    background:#1b7a4d;
-    color:#7ef0b0;
-}
-
-.valence-mid{
-    background:#7a6a1b;
-    color:#f0d97e;
-}
-
-.valence-low{
-    background:#7a1b2c;
-    color:#f08e9c;
 }
 
 .popularity-cell{
@@ -124,6 +94,6 @@
 }
 
 .song-title-link:hover{
-    color:#9b5cff;
+    color:var(--accent-purple);
     text-decoration:underline;
 }

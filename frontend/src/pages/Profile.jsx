@@ -10,8 +10,9 @@ import {
     getUserLikes, updateLikeNote, unlikeSong
 } from "../services/api";
 import { getGenreColor } from "../utils/genreColors";
+import UserPlaylists from "../components/playlists/UserPlaylists";
 
-import { PersonCircle, ShieldCheck, MusicNoteBeamed, PeopleFill, PencilSquare, Check2, Globe, LockFill, CameraFill, BoxArrowRight, X, HeartFill } from "react-bootstrap-icons";
+import { PersonCircle, ShieldCheck, MusicNoteBeamed, PeopleFill, PencilSquare, Check2, Globe, LockFill, CameraFill, BoxArrowRight, X, HeartFill, CollectionPlay } from "react-bootstrap-icons";
 
 function PrivacyToggle({ value, onChange }) {
     return (
@@ -194,7 +195,7 @@ function Profile() {
                                     <BoxArrowRight /> Cerrar sesión
                                 </button>
                             </>
-                        ) : (
+                        ) : user && (
                             <button className="add-friend-btn" onClick={handleAddFriend}>
                                 <PeopleFill /> Agregar amigo
                             </button>
@@ -249,6 +250,15 @@ function Profile() {
                     </div>
 
                 )}
+
+                <section id="playlists" className="profile-section-card profile-playlists">
+                    <h4><CollectionPlay /> Playlists</h4>
+                    <UserPlaylists
+                        ownerUid={uid}
+                        viewerUid={user?.uid}
+                        emptyText={`${profile.display_name} no tiene playlists que puedas ver.`}
+                    />
+                </section>
 
                 <div className="profile-grid">
 

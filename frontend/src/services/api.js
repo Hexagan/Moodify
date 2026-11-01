@@ -1,3 +1,5 @@
+import { appendRangeParams } from "../utils/catalogRanges";
+
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export async function getCanciones(page = 1, pageSize = 10, sortBy, order = "asc") {
@@ -5,6 +7,65 @@ export async function getCanciones(page = 1, pageSize = 10, sortBy, order = "asc
     if (sortBy) { params.append("sort_by", sortBy); params.append("order", order); }
     const res = await fetch(`${BASE_URL}/canciones?${params}`);
     return res.json();
+}
+
+export async function getSongsByQuadrant(cuadrante, valencia, energia) {
+    const params = new URLSearchParams({ limit: 15 });
+    if (valencia !== undefined && energia !== undefined) {
+        params.append("valencia", valencia);
+        params.append("energia", energia);
+    }
+    const res = await fetch(`${BASE_URL}/canciones/mapa-emocional/${cuadrante}?${params}`);
+    return res.json();
+}
+
+export async function getSongThumbnail(trackId) {
+    const res = await fetch(`${BASE_URL}/media/${encodeURIComponent(trackId)}/thumbnail`);
+    if (!res.ok) throw new Error(`thumbnail ${res.status}`);
+    // Covers uploaded from the ABM are served by this backend as relative /uploads paths.
+    return absolutizePhoto((await res.json()).thumbnail_url);
+}
+
+export async function getSongPreview(trackId) {
+    const res = await fetch(`${BASE_URL}/media/${encodeURIComponent(trackId)}/preview`);
+    if (!res.ok) throw new Error(`preview ${res.status}`);
+    return absolutizePhoto((await res.json()).preview_url);
+}
+
+// { video_id, music_url, search_url, configured } - video_id is null when nothing embeddable
+// was found or the server has no YouTube key; music_url then points to a YouTube Music search.
+export async function getSongYouTube(trackId) {
+    const res = await fetch(`${BASE_URL}/media/${encodeURIComponent(trackId)}/youtube`);
+    return jsonOrThrow(res);
+}
+
+export async function getSongMediaAdmin(trackId) {
+    const res = await fetch(`${BASE_URL}/media/${encodeURIComponent(trackId)}/admin`);
+    const data = await jsonOrThrow(res);
+    return { ...data, thumbnail_url: absolutizePhoto(data.thumbnail_url), preview_url: absolutizePhoto(data.preview_url) };
+}
+
+// fields: { cover (File), cover_url, remove_cover, preview (File), preview_url, remove_preview, youtube, remove_youtube }
+export async function updateSongMedia(trackId, adminUid, fields) {
+    const formData = new FormData();
+    formData.append("admin_uid", adminUid);
+    for (const [key, value] of Object.entries(fields)) {
+        if (value === undefined || value === null || value === false || value === "") continue;
+        formData.append(key, value === true ? "true" : value);
+    }
+    const res = await fetch(`${BASE_URL}/media/${encodeURIComponent(trackId)}`, { method: "PUT", body: formData });
+    return jsonOrThrow(res);
+}
+
+export async function getAutofillSources() {
+    const res = await fetch(`${BASE_URL}/media/autocompletar/fuentes`);
+    return jsonOrThrow(res);
+}
+
+export async function searchAutofill(query, source, adminUid) {
+    const params = new URLSearchParams({ q: query, fuente: source, admin_uid: adminUid });
+    const res = await fetch(`${BASE_URL}/media/autocompletar/buscar?${params}`);
+    return jsonOrThrow(res);
 }
 
 export async function getKpis() {
@@ -37,8 +98,9 @@ export async function getAcousticIndex() {
     return res.json();
 }
 
-export async function getTopAcousticSongs() {
-    const res = await fetch(`${BASE_URL}/stats/top-acoustic-songs`);
+export async function getTopAcousticSongs({ limit = 6, offset = 0 } = {}) {
+    const params = new URLSearchParams({ limit, offset });
+    const res = await fetch(`${BASE_URL}/stats/top-acoustic-songs?${params}`);
     return res.json();
 }
 
@@ -64,19 +126,23 @@ export async function getGeneros() {
     return res.json();
 }
 
-export async function getCancionesFull({ page = 1, pageSize = 10, sortBy, order = "asc", genero, busqueda }) {
+export async function getCancionesFull({ page = 1, pageSize = 10, sortBy, order = "asc", genero, busqueda, estado, ranges }) {
     const params = new URLSearchParams({ page, page_size: pageSize });
     if (sortBy) { params.append("sort_by", sortBy); params.append("order", order); }
     if (genero) params.append("genero", genero);
     if (busqueda) params.append("busqueda", busqueda);
+    if (estado) params.append("estado", estado);
+    appendRangeParams(params, ranges);
     const res = await fetch(`${BASE_URL}/canciones?${params}`);
     return res.json();
 }
 
-export async function getCancionesCountFull({ genero, busqueda }) {
+export async function getCancionesCountFull({ genero, busqueda, estado, ranges }) {
     const params = new URLSearchParams();
     if (genero) params.append("genero", genero);
     if (busqueda) params.append("busqueda", busqueda);
+    if (estado) params.append("estado", estado);
+    appendRangeParams(params, ranges);
     const res = await fetch(`${BASE_URL}/canciones/count?${params}`);
     return res.json();
 }
@@ -99,7 +165,7 @@ export async function crearCancion(data) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
     });
-    return res.json();
+    return jsonOrThrow(res);
 }
 
 export async function modificarCancion(id, data) {
@@ -108,7 +174,7 @@ export async function modificarCancion(id, data) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
     });
-    return res.json();
+    return jsonOrThrow(res);
 }
 
 export async function eliminarCancion(id) {
@@ -260,3 +326,184 @@ export async function deleteComment(commentId) {
     return res.json();
 }
 
+
+// ---------- Artistas ----------
+
+async function jsonOrThrow(res) {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || `Error ${res.status}`);
+    return data;
+}
+
+function fixForumUrls(item) {
+    if (!item) return item;
+    const fixed = { ...item, media_url: absolutizePhoto(item.media_url) };
+    if (item.author) fixed.author = { ...item.author, photo_url: absolutizePhoto(item.author.photo_url) };
+    if (item.posts) fixed.posts = item.posts.map(fixForumUrls);
+    return fixed;
+}
+
+export async function getArtists({ q, page = 1, pageSize = 24 } = {}) {
+    const params = new URLSearchParams({ page, page_size: pageSize });
+    if (q) params.append("q", q);
+    return jsonOrThrow(await fetch(`${BASE_URL}/artistas?${params}`));
+}
+
+export async function getFeaturedArtists() {
+    return jsonOrThrow(await fetch(`${BASE_URL}/artistas/destacados`));
+}
+
+export async function getArtist(id) {
+    return jsonOrThrow(await fetch(`${BASE_URL}/artistas/${id}`));
+}
+
+export async function getArtistPicture(id) {
+    return (await jsonOrThrow(await fetch(`${BASE_URL}/artistas/${id}/foto`))).picture_url;
+}
+
+export async function getArtistSongs(id) {
+    return jsonOrThrow(await fetch(`${BASE_URL}/artistas/${id}/canciones`));
+}
+
+export async function getArtistThreads(id) {
+    return (await jsonOrThrow(await fetch(`${BASE_URL}/artistas/${id}/hilos`))).map(fixForumUrls);
+}
+
+export async function createArtistThread(artistId, formData) {
+    const res = await fetch(`${BASE_URL}/artistas/${artistId}/hilos`, { method: "POST", body: formData });
+    return fixForumUrls(await jsonOrThrow(res));
+}
+
+export async function getArtistThread(threadId) {
+    return fixForumUrls(await jsonOrThrow(await fetch(`${BASE_URL}/artistas/hilos/${threadId}`)));
+}
+
+export async function replyArtistThread(threadId, formData) {
+    const res = await fetch(`${BASE_URL}/artistas/hilos/${threadId}/respuestas`, { method: "POST", body: formData });
+    return fixForumUrls(await jsonOrThrow(res));
+}
+
+export async function deleteArtistThread(threadId, uid) {
+    const params = new URLSearchParams({ uid });
+    return jsonOrThrow(await fetch(`${BASE_URL}/artistas/hilos/${threadId}?${params}`, { method: "DELETE" }));
+}
+
+export async function deleteArtistPost(postId, uid) {
+    const params = new URLSearchParams({ uid });
+    return jsonOrThrow(await fetch(`${BASE_URL}/artistas/respuestas/${postId}?${params}`, { method: "DELETE" }));
+}
+
+export async function updateArtistThread(threadId, formData) {
+    const res = await fetch(`${BASE_URL}/artistas/hilos/${threadId}`, { method: "PUT", body: formData });
+    return fixForumUrls(await jsonOrThrow(res));
+}
+
+export async function updateArtistPost(postId, formData) {
+    const res = await fetch(`${BASE_URL}/artistas/respuestas/${postId}`, { method: "PUT", body: formData });
+    return fixForumUrls(await jsonOrThrow(res));
+}
+
+// ---------- Música personal: historial, me gusta, recomendaciones ----------
+
+export async function recordListen(userUid, songId, source) {
+    const res = await fetch(`${BASE_URL}/musica/historial`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_uid: userUid, song_id: songId, source })
+    });
+    return jsonOrThrow(res);
+}
+
+export async function getListeningHistory(uid, limit = 50) {
+    return jsonOrThrow(await fetch(`${BASE_URL}/musica/historial/${uid}?limit=${limit}`));
+}
+
+export async function clearListeningHistory(uid) {
+    const params = new URLSearchParams({ requester: uid });
+    return jsonOrThrow(await fetch(`${BASE_URL}/musica/historial/${uid}?${params}`, { method: "DELETE" }));
+}
+
+export async function getLikedPlaylist(uid, limit = 50) {
+    return jsonOrThrow(await fetch(`${BASE_URL}/musica/me-gusta/${uid}?limit=${limit}`));
+}
+
+export async function getRecommendations(uid, limit = 12) {
+    return jsonOrThrow(await fetch(`${BASE_URL}/musica/recomendaciones/${uid}?limit=${limit}`));
+}
+
+export async function getRecommendedArtists(uid, limit = 8) {
+    return jsonOrThrow(await fetch(`${BASE_URL}/musica/artistas-recomendados/${uid}?limit=${limit}`));
+}
+
+// ---------- settings ----------
+
+export async function getUserSettings(uid) {
+    const res = await fetch(`${BASE_URL}/configuracion/${encodeURIComponent(uid)}`);
+    return jsonOrThrow(res);
+}
+
+export async function saveUserSettings(uid, data) {
+    const res = await fetch(`${BASE_URL}/configuracion/${encodeURIComponent(uid)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+    return jsonOrThrow(res);
+}
+
+// ---------- playlists ----------
+
+function fixPlaylist(p) {
+    return p && { ...p, owner: p.owner && { ...p.owner, photo_url: absolutizePhoto(p.owner.photo_url) } };
+}
+
+export async function getUserPlaylists(uid, viewerUid, songId) {
+    const params = new URLSearchParams();
+    if (viewerUid) params.append("viewer_uid", viewerUid);
+    if (songId != null) params.append("song_id", songId);
+    const res = await fetch(`${BASE_URL}/playlists/usuario/${encodeURIComponent(uid)}?${params}`);
+    return (await jsonOrThrow(res)).map(fixPlaylist);
+}
+
+export async function getPlaylist(id, viewerUid) {
+    const params = viewerUid ? `?viewer_uid=${encodeURIComponent(viewerUid)}` : "";
+    const res = await fetch(`${BASE_URL}/playlists/${id}${params}`);
+    return fixPlaylist(await jsonOrThrow(res));
+}
+
+export async function createPlaylist(data) {
+    const res = await fetch(`${BASE_URL}/playlists`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+    return fixPlaylist(await jsonOrThrow(res));
+}
+
+export async function updatePlaylist(id, data) {
+    const res = await fetch(`${BASE_URL}/playlists/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+    return fixPlaylist(await jsonOrThrow(res));
+}
+
+export async function deletePlaylist(id, uid) {
+    const res = await fetch(`${BASE_URL}/playlists/${id}?uid=${encodeURIComponent(uid)}`, { method: "DELETE" });
+    return jsonOrThrow(res);
+}
+
+export async function addSongToPlaylist(playlistId, uid, songId) {
+    const res = await fetch(`${BASE_URL}/playlists/${playlistId}/canciones`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uid, song_id: songId })
+    });
+    return jsonOrThrow(res);
+}
+
+export async function removeSongFromPlaylist(playlistId, uid, songId) {
+    const res = await fetch(`${BASE_URL}/playlists/${playlistId}/canciones/${songId}?uid=${encodeURIComponent(uid)}`, { method: "DELETE" });
+    return jsonOrThrow(res);
+}

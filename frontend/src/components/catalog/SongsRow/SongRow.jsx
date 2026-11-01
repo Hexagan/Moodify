@@ -3,20 +3,18 @@ import "./SongRow.css";
 import GenreBadge from "./GenreBadge";
 import StatusBadge from "./StatusBadge";
 import EditButton from "./EditButton";
-import { StarFill, Star } from "react-bootstrap-icons";
+import SnippetButton from "./SnippetButton";
 import { useNavigate } from "react-router-dom";
 import StarRating from "../../common/StarRating";
+import ScaleBadge from "../../common/ScaleBadge";
+import { useAuth } from "../../../context/AuthContext";
 
-function getValenceClass(value) {
-    if (value >= 0.6) return "valence-high";
-    if (value >= 0.4) return "valence-mid";
-    return "valence-low";
-}
-
-function SongRow({ song }) {
+function SongRow({ song, activeGenre }) {
 
     const navigate = useNavigate();
-    
+    const { isAdmin } = useAuth();
+    const shownGenre = song.genres.includes(activeGenre) ? activeGenre : song.genres[0];
+
     function handleEdit() {
         navigate("/abm", { state: { tab: "modificar", song } });
     }
@@ -30,13 +28,13 @@ function SongRow({ song }) {
                 <span>{song.artist}</span>
             </div>
 
-            <GenreBadge genre={song.genre}/>
+            <SnippetButton trackId={song.track_id} songId={song.id} title={song.title}/>
 
-            <span className={`valence-badge ${getValenceClass(song.valence)}`}>
-                {song.valence}
-            </span>
+            <GenreBadge genre={shownGenre}/>
 
-            <span>{song.energy}</span>
+            <ScaleBadge value={song.valence}/>
+
+            <ScaleBadge value={song.energy}/>
 
             <div className="popularity-cell">
                 <span>{song.popularity}</span>
@@ -47,7 +45,7 @@ function SongRow({ song }) {
 
             <StatusBadge status={song.status}/>
 
-            <EditButton onClick={handleEdit}/>
+            {isAdmin ? <EditButton onClick={handleEdit}/> : <span aria-hidden="true" />}
 
         </div>
 

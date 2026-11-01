@@ -18,7 +18,7 @@
 
     font-weight:600;
 
-    color:white;
+    color:#ffffff;
 
     justify-self:center;
 
@@ -32,42 +32,42 @@
 
     border-radius:50%;
 
-    background:white;
+    background:#ffffff;
 
 }
 
-.status-relax{
+.status-energico{
 
-    background:#2563EB;
-
-}
-
-.status-energy{
-
-    background:#F59E0B;
+    background:#8f7a12;
 
 }
 
-.status-happy{
+.status-intenso{
 
-    background:#22C55E;
+    background:#c2414b;
 
 }
 
-.status-mixed{
+.status-relajante{
+
+    background:#1f8a68;
+
+}
+
+.status-melancolico{
+
+    background:#3563b0;
+
+}
+
+.status-mixto{
 
     background:#6B7280;
 
 }
 
-.status-tense{
-
-    background:#EF4444;
-
-}
-
 .status-default{
 
-    background:#5B6078;
+    background:var(--text-dim);
 
 }

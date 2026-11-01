@@ -1,0 +1,47 @@
+.theme-toggle{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    width:58px;
+    height:30px;
+    padding:0 7px;
+    border-radius:999px;
+    background:var(--bg-elevated);
+    border:1px solid var(--border);
+    cursor:pointer;
+    flex-shrink:0;
+    transition:.2s;
+}
+
+.theme-toggle-icon{
+    font-size:14px;
+    z-index:1;
+}
+
+.theme-toggle-icon.sun{
+    color:#ffc94d;
+}
+
+.theme-toggle-icon.moon{
+    color:#8b9bff;
+}
+
+.theme-toggle-knob{
+    position:absolute;
+    top:3px;
+    left:3px;
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    background:var(--accent);
+    transition:transform .25s;
+}
+
+.theme-toggle.light .theme-toggle-knob{
+    transform:translateX(0);
+}
+
+.theme-toggle.dark .theme-toggle-knob{
+    transform:translateX(28px);
+}

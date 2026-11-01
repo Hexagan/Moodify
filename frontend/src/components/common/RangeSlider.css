@@ -1,0 +1,96 @@
+.range-slider{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.range-slider-track{
+    position:relative;
+    height:22px;
+}
+
+/* the visible rail */
+.range-slider-track::before{
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    top:50%;
+    height:6px;
+    transform:translateY(-50%);
+    border-radius:999px;
+    background:var(--bg-elevated);
+}
+
+.range-slider-fill{
+    position:absolute;
+    top:50%;
+    height:6px;
+    transform:translateY(-50%);
+    border-radius:999px;
+    background:var(--accent);
+}
+
+/* Both inputs cover the whole rail; only their thumbs take pointer events, so either
+   thumb can be grabbed even where the inputs overlap. */
+.range-slider input[type="range"]{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    margin:0;
+    background:none;
+    pointer-events:none;
+    appearance:none;
+    -webkit-appearance:none;
+}
+
+.range-slider input[type="range"]::-webkit-slider-runnable-track{
+    background:none;
+}
+
+.range-slider input[type="range"]::-moz-range-track{
+    background:none;
+}
+
+.range-slider input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:18px;
+    height:18px;
+    border:3px solid var(--accent);
+    border-radius:50%;
+    background:#ffffff;
+    box-shadow:0 1px 4px rgba(0,0,0,0.35);
+    pointer-events:auto;
+    cursor:grab;
+}
+
+.range-slider input[type="range"]::-moz-range-thumb{
+    width:12px;
+    height:12px;
+    border:3px solid var(--accent);
+    border-radius:50%;
+    background:#ffffff;
+    box-shadow:0 1px 4px rgba(0,0,0,0.35);
+    pointer-events:auto;
+    cursor:grab;
+}
+
+.range-slider input[type="range"]:focus-visible::-webkit-slider-thumb{
+    outline:2px solid var(--accent-light);
+    outline-offset:2px;
+}
+
+.range-slider input[type="range"]:focus-visible::-moz-range-thumb{
+    outline:2px solid var(--accent-light);
+    outline-offset:2px;
+}
+
+.range-slider-values{
+    display:flex;
+    justify-content:space-between;
+    color:var(--text-secondary);
+    font-size:13px;
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+}

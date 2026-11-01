@@ -1,0 +1,148 @@
+.artist-thread-page{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    max-width:860px;
+}
+
+.artist-thread-message{
+    padding:40px;
+    text-align:center;
+    color:var(--text-muted);
+}
+
+.thread-breadcrumb{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--text-muted);
+    font-size:14px;
+    font-weight:600;
+}
+
+.thread-breadcrumb a:hover{
+    color:var(--text-primary);
+}
+
+.thread-breadcrumb-artist{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    color:var(--text-secondary);
+}
+
+.thread-breadcrumb-image{
+    width:24px;
+    height:24px;
+    border-radius:6px;
+}
+
+.thread-op,
+.thread-reply{
+    padding:20px 22px;
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:18px;
+}
+
+.thread-op{
+    border-color:var(--accent-strong);
+}
+
+.thread-op-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+}
+
+.thread-op h1{
+    margin:14px 0 8px;
+    font-size:clamp(22px, 3vw, 28px);
+    font-weight:800;
+    line-height:1.2;
+    text-wrap:balance;
+}
+
+.forum-text{
+    margin:10px 0 0;
+    color:var(--text-body);
+    font-size:15px;
+    line-height:1.6;
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+}
+
+.thread-replies{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.thread-replies h2{
+    margin:8px 0 0;
+    color:var(--text-secondary);
+    font-size:15px;
+    font-weight:700;
+}
+
+.forum-post-actions{
+    display:flex;
+    gap:2px;
+}
+
+.forum-edit-area{
+    margin-top:14px;
+}
+
+.forum-edit{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:32px;
+    height:32px;
+    flex-shrink:0;
+    border:none;
+    border-radius:8px;
+    background:none;
+    color:var(--text-dim);
+    font-size:15px;
+    cursor:pointer;
+    transition:.15s;
+}
+
+.forum-edit:hover{
+    background:var(--bg-hover);
+    color:var(--text-primary);
+}
+
+.forum-edit:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+}
+
+.forum-delete{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:32px;
+    height:32px;
+    flex-shrink:0;
+    border:none;
+    border-radius:8px;
+    background:none;
+    color:var(--text-dim);
+    font-size:15px;
+    cursor:pointer;
+    transition:.15s;
+}
+
+.forum-delete:hover{
+    background:rgba(255,77,77,0.12);
+    color:var(--danger);
+}
+
+.forum-delete:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+}

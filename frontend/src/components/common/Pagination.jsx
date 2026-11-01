@@ -1,3 +1,4 @@
+import { useState } from "react";
 import "./Pagination.css";
 import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 
@@ -24,9 +25,45 @@ function getPageNumbers(current, total) {
 
 }
 
+function PageJump({ totalPages, onJump, onCancel }) {
+
+    const [value, setValue] = useState("");
+    const page = Number(value);
+    const valid = Number.isInteger(page) && page >= 1 && page <= totalPages;
+
+    function handleKeyDown(e) {
+        if (e.key === "Enter" && valid) onJump(page);
+        if (e.key === "Escape") onCancel();
+    }
+
+    return (
+        <input
+            className={`page-jump ${value && !valid ? "invalid" : ""}`}
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={totalPages}
+            placeholder={`1–${totalPages}`}
+            aria-label={`Ir a la página (1 a ${totalPages}), Enter para confirmar`}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={onCancel}
+            autoFocus
+        />
+    );
+
+}
+
 function Pagination({ currentPage, totalPages, onPageChange }) {
 
+    const [jumpingAt, setJumpingAt] = useState(null);
     const pages = getPageNumbers(currentPage, totalPages);
+
+    function jump(page) {
+        setJumpingAt(null);
+        onPageChange(page);
+    }
 
     return (
 
@@ -36,18 +73,32 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
                 className="page-btn"
                 disabled={currentPage === 1}
                 onClick={() => onPageChange(currentPage - 1)}
+                aria-label="Página anterior"
             >
                 <ChevronLeft />
             </button>
 
             {pages.map((page, i) => (
                 page === "..."
-                    ? <span key={`dots-${i}`} className="page-dots">...</span>
+                    ? (jumpingAt === i
+                        ? <PageJump key={`jump-${i}`} totalPages={totalPages} onJump={jump} onCancel={() => setJumpingAt(null)} />
+                        : (
+                            <button
+                                key={`dots-${i}`}
+                                className="page-dots"
+                                onClick={() => setJumpingAt(i)}
+                                title="Ir a una página"
+                                aria-label="Ir a una página específica"
+                            >
+                                ...
+                            </button>
+                        ))
                     : (
                         <button
                             key={page}
                             className={`page-btn ${page === currentPage ? "active" : ""}`}
                             onClick={() => onPageChange(page)}
+                            aria-current={page === currentPage ? "page" : undefined}
                         >
                             {page}
                         </button>
@@ -58,6 +109,7 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
                 className="page-btn"
                 disabled={currentPage === totalPages}
                 onClick={() => onPageChange(currentPage + 1)}
+                aria-label="Página siguiente"
             >
                 <ChevronRight />
             </button>

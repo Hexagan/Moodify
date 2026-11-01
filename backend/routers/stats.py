@@ -5,36 +5,19 @@ from sqlalchemy import func, Integer
 import database
 import models
 import schemas
+from song_queries import deduped_query, rows_to_songs
 
 router = APIRouter(prefix="/stats", tags=["Estadísticas"])
 
 @router.get("/kpis", response_model=schemas.KpiStats)
 def kpis(db: Session = Depends(database.get_db)):
 
-    best = (
-        db.query(
-            models.Cancion.track_name,
-            models.Cancion.artists,
-            func.max(models.Cancion.popularity).label("max_pop")
-        )
-        .group_by(models.Cancion.track_name, models.Cancion.artists)
-        .subquery()
-    )
+    consulta, Rep = deduped_query(db)
 
-    consulta = (
-        db.query(models.Cancion)
-        .join(
-            best,
-            (models.Cancion.track_name == best.c.track_name) &
-            (models.Cancion.artists == best.c.artists) &
-            (models.Cancion.popularity == best.c.max_pop)
-        )
-    )
-
-    total = consulta.distinct().count()
-    avg_valence = consulta.with_entities(func.avg(models.Cancion.valence)).scalar() or 0
-    avg_energy = consulta.with_entities(func.avg(models.Cancion.energy)).scalar() or 0
-    avg_popularity = consulta.with_entities(func.avg(models.Cancion.popularity)).scalar() or 0
+    total = consulta.count()
+    avg_valence = consulta.with_entities(func.avg(Rep.valence)).scalar() or 0
+    avg_energy = consulta.with_entities(func.avg(Rep.energy)).scalar() or 0
+    avg_popularity = consulta.with_entities(func.avg(Rep.popularity)).scalar() or 0
 
     return {
         "total_songs": total,
@@ -115,23 +98,26 @@ BIO_IMPACT_GENRES = ["jazz", "rock-n-roll", "blues", "gospel", "k-pop", "funk", 
 @router.get("/acoustic-index", response_model=list[schemas.GenreStat])
 def acoustic_index(db: Session = Depends(database.get_db)):
     rows = (
-        db.query(models.Cancion.track_genre, func.avg(models.Cancion.acousticness) * 100)
+        db.query(models.Cancion.track_genre, func.avg(models.Cancion.acousticness))
         .filter(models.Cancion.track_genre.in_(BIO_IMPACT_GENRES))
         .group_by(models.Cancion.track_genre)
         .order_by(func.avg(models.Cancion.acousticness).desc())
         .limit(5)
         .all()
     )
-    return [{"genre": genre, "value": round(value, 1)} for genre, value in rows]
+    # Plain acousticness (0-1), the same scale the songs themselves use.
+    return [{"genre": genre, "value": round(value, 3)} for genre, value in rows]
 
 @router.get("/top-acoustic-songs", response_model=list[schemas.CancionRespuesta])
-def top_acoustic_songs(db: Session = Depends(database.get_db)):
-    return (
-        db.query(models.Cancion)
-        .order_by(models.Cancion.acousticness.desc())
-        .limit(6)
-        .all()
-    )
+def top_acoustic_songs(
+    limit: int = Query(6, ge=1, le=50),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(database.get_db)
+):
+    consulta, Rep = deduped_query(db)
+    # id tiebreaker: many songs share the top acousticness values, and paging needs a stable order.
+    rows = consulta.order_by(Rep.acousticness.desc(), Rep.id.desc()).offset(offset).limit(limit).all()
+    return rows_to_songs(rows)
 
 PSYCH_MAP_GENRES = [
     "classical", "jazz", "acoustic", "sleep", "ambient", "new-age",

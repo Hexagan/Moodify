@@ -6,6 +6,8 @@ import ChartCard from "../components/dashboard/ChartCard";
 import AcousticChart from "../components/bioimpact/AcousticChart";
 import InsightBanner from "../components/bioimpact/InsightBanner";
 import AcousticSongsList from "../components/bioimpact/AcousticSongsList";
+import GreenhouseBanner from "../components/bioimpact/GreenhouseBanner";
+import AcousticRanking from "../components/bioimpact/AcousticRanking";
 
 import { Flower1, MusicNoteList } from "react-bootstrap-icons";
 
@@ -31,6 +33,8 @@ function BioImpact() {
                             text="Las canciones con una acusticidad mayor a 0.5 favorecen el crecimiento vegetal según estudios de bioacústica."
                         />
 
+                        <GreenhouseBanner targetId="ranking-acustico" />
+
                     </div>
 
                     <ChartCard
@@ -42,6 +46,8 @@ function BioImpact() {
                     </ChartCard>
 
                 </div>
+
+                <AcousticRanking id="ranking-acustico" startAfter={6} />
 
             </div>
 

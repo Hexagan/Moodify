@@ -54,17 +54,18 @@ function AcousticChart() {
                     />
 
                     <YAxis
-                        domain={[0,100]}
-                        tickFormatter={(v) => `${v}%`}
+                        domain={[0,1]}
+                        ticks={[0, 0.25, 0.5, 0.75, 1]}
+                        tickFormatter={(v) => v.toFixed(2)}
                         axisLine={false}
                         tickLine={false}
                         tick={{ fill:"#A6A9C8", fontSize:12 }}
-                        label={{ value:"Acousticness (%)", angle:-90, position:"insideLeft", fill:"#8085aa", fontSize:12 }}
+                        label={{ value:"Acousticness", angle:-90, position:"insideLeft", fill:"#8085aa", fontSize:12 }}
                     />
 
                     <Tooltip
                         cursor={false}
-                        formatter={(v) => `${v}%`}
+                        formatter={(v) => [v.toFixed(2), "Acousticness"]}
                         contentStyle={tooltipContentStyle}
                         itemStyle={tooltipItemStyle}
                         labelStyle={tooltipLabelStyle}

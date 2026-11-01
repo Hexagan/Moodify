@@ -8,25 +8,25 @@
     align-items:baseline;
     margin-bottom:8px;
     font-size:14px;
-    color:#A6A9C8;
+    color:var(--text-secondary);
 }
 
 .audio-slider-range{
-    color:#5c5f80;
+    color:var(--text-dim);
     font-size:12px;
 }
 
 .required{
-    color:#ff4d4d;
+    color:var(--danger);
     margin-left:2px;
 }
 
 .audio-slider-value{
-    color:#a93dff;
+    color:var(--accent-purple);
     font-weight:700;
 }
 
 .audio-slider input[type="range"]{
     width:100%;
-    accent-color:#a93dff;
+    accent-color:var(--accent-purple);
 }

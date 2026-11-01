@@ -1,0 +1,115 @@
+.snippet-btn{
+    position:relative;
+    justify-self:center;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    width:64px;
+    height:30px;
+    padding:0;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:var(--bg-elevated);
+    color:var(--text-primary);
+    font-size:15px;
+    cursor:pointer;
+    transition:background .2s, border-color .2s, color .2s, transform .15s;
+}
+
+.snippet-label{
+    font-size:12px;
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+}
+
+.snippet-btn:hover:not(:disabled){
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#ffffff;
+}
+
+.snippet-btn:active:not(:disabled){
+    transform:scale(.94);
+}
+
+.snippet-btn:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:3px;
+}
+
+.snippet-btn.loading,
+.snippet-btn.playing,
+.snippet-btn.stalled,
+.snippet-btn.awaiting{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#ffffff;
+}
+
+.snippet-btn.fallback{
+    color:var(--text-muted);
+    font-size:14px;
+    text-decoration:none;
+}
+
+.snippet-btn.fallback:hover{
+    background:var(--bg-elevated);
+    border-color:#1db954;
+    color:#1db954;
+}
+
+.snippet-btn:disabled{
+    opacity:.4;
+    cursor:not-allowed;
+}
+
+/* 10px larger than the 64x30 button in each axis, matching the SVG's 74x40 viewBox. */
+.snippet-ring{
+    position:absolute;
+    inset:-5px;
+    width:74px;
+    height:40px;
+    pointer-events:none;
+}
+
+.snippet-ring rect{
+    fill:none;
+    stroke-width:2;
+}
+
+.snippet-ring-track{
+    stroke:var(--border);
+}
+
+.snippet-ring-progress{
+    stroke:var(--accent);
+    stroke-linecap:round;
+    stroke-dasharray:100;
+    stroke-dashoffset:100;
+    animation-name:snippet-progress;
+    animation-timing-function:linear;
+    animation-fill-mode:forwards;
+}
+
+.snippet-spinner{
+    width:14px;
+    height:14px;
+    border-radius:50%;
+    border:2px solid currentColor;
+    border-right-color:transparent;
+    animation:snippet-spin .7s linear infinite;
+}
+
+@keyframes snippet-progress{
+    to{ stroke-dashoffset:0; }
+}
+
+@keyframes snippet-spin{
+    to{ transform:rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce){
+    .snippet-spinner{ animation-duration:2.4s; }
+    .snippet-btn{ transition:none; }
+}

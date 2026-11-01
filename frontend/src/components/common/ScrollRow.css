@@ -1,0 +1,69 @@
+.scroll-row{
+    position:relative;
+}
+
+.scroll-row-track{
+    display:grid;
+    grid-auto-flow:column;
+    grid-auto-columns:var(--scroll-item, 180px);
+    gap:16px;
+    overflow-x:auto;
+    overscroll-behavior-x:contain;
+    scroll-snap-type:x proximity;
+    scrollbar-width:none;
+    /* room for card hover lifts and focus rings, which overflow would otherwise clip */
+    padding:6px 4px 10px;
+    margin:-6px -4px -10px;
+}
+
+.scroll-row-track::-webkit-scrollbar{
+    display:none;
+}
+
+.scroll-row-track > *{
+    scroll-snap-align:start;
+    min-width:0;
+}
+
+.scroll-row-track:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:4px;
+    border-radius:12px;
+}
+
+.scroll-row-arrow{
+    position:absolute;
+    top:calc(var(--scroll-item, 180px) / 2 - 20px);
+    z-index:2;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:40px;
+    height:40px;
+    border:1px solid var(--border);
+    border-radius:50%;
+    background:var(--bg-card);
+    color:var(--text-primary);
+    font-size:17px;
+    box-shadow:0 8px 20px -6px rgba(0,0,0,0.5);
+    cursor:pointer;
+    transition:background .15s, border-color .15s;
+}
+
+.scroll-row-arrow:hover{
+    background:var(--bg-hover);
+    border-color:var(--accent-strong);
+}
+
+.scroll-row-arrow:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+}
+
+.scroll-row-arrow.prev{
+    left:-14px;
+}
+
+.scroll-row-arrow.next{
+    right:-14px;
+}

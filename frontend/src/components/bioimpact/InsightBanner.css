@@ -3,7 +3,7 @@
     align-items:center;
     gap:18px;
 
-    background:#15172e;
+    background:var(--bg-elevated);
     border:1px solid #6d3dff;
     border-radius:16px;
     padding:22px;
@@ -21,13 +21,13 @@
     align-items:center;
     justify-content:center;
 
-    color:#a93dff;
+    color:var(--accent-purple);
     font-size:20px;
 }
 
 .insight-banner p{
     margin:0;
-    color:#d8d9ec;
+    color:var(--text-body);
     font-size:15px;
     line-height:1.5;
 }

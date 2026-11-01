@@ -1,0 +1,96 @@
+/* The illustration is its own scene (night-green greenhouse), so its colours stay fixed in both themes. */
+.greenhouse-banner{
+    position:relative;
+    flex:1;
+    min-height:180px;
+    overflow:hidden;
+    border:1px solid #2bb673;
+    border-radius:18px;
+    background:#0d2a22;
+}
+
+.greenhouse-art{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+}
+
+.greenhouse-copy{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:6px;
+    max-width:min(340px, 48%);
+    padding:22px 24px;
+    color:#eafff3;
+    text-shadow:0 1px 8px rgba(5,20,14,0.9);
+}
+
+.greenhouse-eyebrow{
+    color:#7ff0b0;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+}
+
+.greenhouse-copy h3{
+    margin:0;
+    font-size:22px;
+    font-weight:800;
+}
+
+.greenhouse-copy p{
+    margin:0;
+    color:#c8ecd9;
+    font-size:14px;
+    line-height:1.5;
+}
+
+.greenhouse-cta{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-top:8px;
+    padding:8px 14px;
+    border-radius:999px;
+    background:#2bb673;
+    color:#062014;
+    font-size:13px;
+    font-weight:700;
+    text-shadow:none;
+    transition:background .15s;
+}
+
+.greenhouse-cta:hover{
+    background:#3ddc84;
+    color:#062014;
+}
+
+.greenhouse-cta:focus-visible{
+    outline:2px solid #eafff3;
+    outline-offset:2px;
+}
+
+.greenhouse-note{
+    fill:#c9b8ff;
+    font-size:26px;
+    animation:greenhouse-float 4.8s ease-in-out infinite;
+}
+
+@keyframes greenhouse-float{
+    0%, 100%{ transform:translateY(0); opacity:.55; }
+    50%{ transform:translateY(-10px); opacity:1; }
+}
+
+@media (max-width:640px){
+    .greenhouse-copy{
+        max-width:none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce){
+    .greenhouse-note{ animation:none; opacity:.8; }
+}

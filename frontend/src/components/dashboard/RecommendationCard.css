@@ -1,0 +1,103 @@
+.rec-card{
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:18px;
+    transition:border-color .2s, transform .2s;
+}
+
+.rec-card:hover{
+    border-color:var(--accent-strong);
+    transform:translateY(-2px);
+}
+
+.rec-card-cover{
+    width:100%;
+    aspect-ratio:1;
+    border-radius:0;
+}
+
+.rec-card-body{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    padding:12px 14px 14px;
+    min-width:0;
+    flex:1;
+}
+
+.rec-card-title{
+    font-size:15px;
+    font-weight:700;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+}
+
+.rec-card-title:hover{
+    color:var(--accent-light);
+}
+
+.rec-card-title:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+    border-radius:4px;
+}
+
+.rec-card-artist{
+    color:var(--text-muted);
+    font-size:12px;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+}
+
+.rec-card-reason{
+    display:flex;
+    gap:6px;
+    margin:6px 0 0;
+    color:var(--text-secondary);
+    font-size:12px;
+    line-height:1.35;
+}
+
+.rec-card-reason svg{
+    flex-shrink:0;
+    margin-top:2px;
+}
+
+.rec-card-reason.liked svg{ color:#e2556a; }
+.rec-card-reason.heard svg{ color:#5c8ee0; }
+
+.rec-card-reason span{
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+}
+
+.rec-card-reason strong{
+    color:var(--text-primary);
+    font-weight:600;
+}
+
+.rec-card-foot{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-top:auto;
+    padding-top:10px;
+}
+
+.rec-card-foot .status-badge{
+    padding:3px 10px;
+    font-size:12px;
+}
+
+@media (prefers-reduced-motion: reduce){
+    .rec-card{ transition:none; }
+    .rec-card:hover{ transform:none; }
+}

@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { ChevronRight } from "react-bootstrap-icons";
 import "./AcousticSongsList.css";
 
 import { getTopAcousticSongs } from "../../services/api";
@@ -20,16 +22,18 @@ function AcousticSongsList() {
 
             {songs.map((song) => (
 
-                <div className="acoustic-song-row" key={song.id}>
+                <Link className="acoustic-song-row" key={song.id} to={`/cancion/${song.id}`}>
 
                     <div className="acoustic-song-info">
                         <h4>{song.title}</h4>
-                        <span>{song.artist} - {song.genre} - {song.duration}</span>
+                        <span>{song.artist} - {song.genres[0]} - {song.duration}</span>
                     </div>
 
                     <span className="acoustic-song-value">{song.acousticness}</span>
 
-                </div>
+                    <ChevronRight className="acoustic-song-arrow" aria-hidden="true" />
+
+                </Link>
 
             ))}
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./Login.css";
 import logo from "../assets/logo-noBG.png";
 
@@ -137,6 +137,8 @@ function Login() {
                         : <>¿Ya tenés cuenta? <span onClick={() => setMode("login")}>Ingresá</span></>
                     }
                 </p>
+
+                <Link to="/" className="login-guest">Seguir como invitado</Link>
 
             </div>
 

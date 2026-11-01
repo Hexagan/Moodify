@@ -4,29 +4,37 @@
 }
 
 .recent-table thead th{
-    color:#8b8daa;
+    color:var(--text-muted);
     font-size:14px;
     font-weight:600;
     padding:12px 8px;
     text-align:left;
-    border-bottom:1px solid #24264d;
+    border-bottom:1px solid var(--border);
 }
 
 .recent-table tbody td{
     padding:14px 8px;
-    border-bottom:1px solid #1b1d36;
+    border-bottom:1px solid var(--bg-elevated);
     vertical-align:middle;
 }
 
 .song-title{
     font-size:15px;
     font-weight:600;
-    color:white;
+    color:var(--text-primary);
+}
+
+.recent-table .song-title-link{
+    display:block;
+}
+
+.recent-table .song-title-link:hover{
+    color:var(--accent-light);
 }
 
 .song-artist{
     font-size:13px;
-    color:#7d81a8;
+    color:var(--text-muted);
 }
 
 .badge{
@@ -35,15 +43,15 @@
     border-radius:12px;
     font-size:12px;
     font-weight:600;
-    color:white;
+    color:#ffffff;
 }
 
 .recent-table svg{
     cursor:pointer;
-    color:#8b8daa;
+    color:var(--text-muted);
     transition:.2s;
 }
 
 .recent-table svg:hover{
-    color:white;
+    color:var(--text-primary);
 }

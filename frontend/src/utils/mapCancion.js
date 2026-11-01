@@ -1,10 +1,15 @@
+// Same order the catalog's Estado header cycles through; the backend owns the classification.
+export const ESTADOS = ["Enérgico", "Intenso", "Relajante", "Melancólico", "Mixto"];
+
 export function mapCancion(c) {
     return {
         id: c.id,
         track_id: c.track_id,
         title: c.track_name,
         artist: c.artists,
+        album: c.album_name,
         genre: c.track_genre,
+        genres: c.genres?.length ? c.genres : [c.track_genre].filter(Boolean),
         valence: c.valence,
         energy: c.energy,
         danceability: c.danceability,
@@ -13,7 +18,7 @@ export function mapCancion(c) {
         explicit: c.explicit,
         loudness: c.loudness,
         acousticness: c.acousticness,
-        status: deriveStatus(c.valence, c.energy)
+        status: c.estado ?? null
     };
 }
 
@@ -23,10 +28,4 @@ function formatDuration(ms) {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-}
-
-function deriveStatus(valence, energy) {
-    if (energy > 0.7) return "Enérgico";
-    if (energy < 0.3) return "Relajante";
-    return "Mixto";
 }

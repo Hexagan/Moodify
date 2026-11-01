@@ -1,0 +1,23 @@
+.song-cover{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+    overflow:hidden;
+    border-radius:10px;
+    background:linear-gradient(135deg, color-mix(in srgb, var(--cover-tint) 55%, var(--bg-elevated)), var(--bg-elevated));
+    color:rgba(255,255,255,0.75);
+    container-type:inline-size;
+}
+
+.song-cover img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.song-cover svg{
+    font-size:clamp(14px, 36cqw, 40px);
+}

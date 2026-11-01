@@ -1,0 +1,30 @@
+/* Classes and variables set on <html> by SettingsContext (Configuración > Accesibilidad). */
+
+/* Text size: scales the page content, not the sidebar/topbar chrome, so navigation stays put. */
+.page-content > *{
+    zoom:var(--ui-zoom, 1);
+}
+
+.a11y-reduce-motion *,
+.a11y-reduce-motion *::before,
+.a11y-reduce-motion *::after{
+    animation-duration:0.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:0.01ms !important;
+    scroll-behavior:auto !important;
+}
+
+.a11y-strong-focus *:focus-visible{
+    outline:3px solid var(--accent-light) !important;
+    outline-offset:3px !important;
+    box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 35%, transparent) !important;
+}
+
+.a11y-readable-font body,
+.a11y-readable-font button,
+.a11y-readable-font input,
+.a11y-readable-font select,
+.a11y-readable-font textarea{
+    font-family:"Atkinson Hyperlegible", Inter, sans-serif !important;
+    letter-spacing:.01em;
+}

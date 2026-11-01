@@ -5,7 +5,7 @@
 }
 
 .profile-loading{
-    color:#8b8daa;
+    color:var(--text-muted);
     padding:40px;
     text-align:center;
 }
@@ -14,8 +14,8 @@
     display:flex;
     align-items:flex-start;
     gap:24px;
-    background:#101126;
-    border:1px solid #24264d;
+    background:var(--bg-card);
+    border:1px solid var(--border);
     border-radius:20px;
     padding:28px;
 }
@@ -26,7 +26,7 @@
     height:88px;
     min-width:88px;
     border-radius:50%;
-    background:#1b1d36;
+    background:var(--bg-elevated);
     display:flex;
     align-items:center;
     justify-content:center;
@@ -50,7 +50,7 @@
     border:none;
     border-radius:50%;
     background:rgba(15,17,38,0.7);
-    color:white;
+    color:var(--text-primary);
     font-size:22px;
     cursor:pointer;
     opacity:0;
@@ -86,20 +86,20 @@
     gap:5px;
     padding:4px 12px;
     background:rgba(155,92,255,0.15);
-    border:1px solid #9b5cff;
+    border:1px solid var(--accent-purple);
     border-radius:999px;
-    color:#c4a0ff;
+    color:var(--accent-light);
     font-size:12px;
     font-weight:600;
 }
 
 .profile-email{
-    color:#8b8daa;
+    color:var(--text-muted);
     font-size:14px;
 }
 
 .profile-bio{
-    color:#d0d2e8;
+    color:var(--text-body);
     font-size:14px;
     line-height:1.5;
     margin:0;
@@ -124,35 +124,35 @@
 }
 
 .edit-profile-btn{
-    background:#1b1d36;
-    border:1px solid #24264d;
-    color:#A6A9C8;
+    background:var(--bg-elevated);
+    border:1px solid var(--border);
+    color:var(--text-secondary);
 }
 
 .edit-profile-btn:hover{
-    border-color:#8b5cf6;
-    color:white;
+    border-color:var(--accent-strong);
+    color:var(--text-primary);
 }
 
 .logout-btn{
     background:rgba(255,77,77,0.1);
-    border:1px solid #ff4d4d;
-    color:#ff8888;
+    border:1px solid var(--danger);
+    color:var(--danger-light);
 }
 
 .logout-btn:hover{
-    background:#ff4d4d;
-    color:white;
+    background:var(--danger);
+    color:var(--text-primary);
 }
 
 .add-friend-btn{
-    background:#7c5cff;
-    border:1px solid #7c5cff;
-    color:white;
+    background:var(--accent);
+    border:1px solid var(--accent);
+    color:var(--text-primary);
 }
 
 .add-friend-btn:hover{
-    background:#6a4ce0;
+    background:var(--accent-hover);
 }
 
 .profile-feedback{
@@ -164,19 +164,19 @@
 
 .profile-feedback.success{
     background:rgba(51,209,122,0.12);
-    border:1px solid #33d17a;
-    color:#7ef0b0;
+    border:1px solid var(--success);
+    color:var(--success-text);
 }
 
 .profile-feedback.error{
     background:rgba(255,77,77,0.1);
-    border:1px solid #ff4d4d;
-    color:#ff8888;
+    border:1px solid var(--danger);
+    color:var(--danger-light);
 }
 
 .profile-edit-card{
-    background:#101126;
-    border:1px solid #24264d;
+    background:var(--bg-card);
+    border:1px solid var(--border);
     border-radius:20px;
     padding:24px;
     display:flex;
@@ -190,7 +190,7 @@
 }
 
 .profile-edit-card label{
-    color:#A6A9C8;
+    color:var(--text-secondary);
     font-size:13px;
 }
 
@@ -198,10 +198,10 @@
     width:100%;
     min-height:80px;
     padding:12px;
-    background:#0f1126;
-    border:1px solid #24264d;
+    background:var(--bg-card);
+    border:1px solid var(--border);
     border-radius:12px;
-    color:white;
+    color:var(--text-primary);
     font-size:14px;
     resize:vertical;
     box-sizing:border-box;
@@ -212,9 +212,9 @@
     flex-direction:column;
     gap:10px;
     padding:16px;
-    background:#0f1126;
+    background:var(--bg-card);
     border-radius:12px;
-    border:1px solid #1b1d36;
+    border:1px solid var(--bg-elevated);
 }
 
 .privacy-row{
@@ -222,7 +222,7 @@
     align-items:center;
     justify-content:space-between;
     font-size:14px;
-    color:#A6A9C8;
+    color:var(--text-secondary);
 }
 
 .privacy-toggle{
@@ -239,14 +239,14 @@
 
 .privacy-toggle.public{
     background:rgba(51,209,122,0.12);
-    border:1px solid #33d17a;
-    color:#7ef0b0;
+    border:1px solid var(--success);
+    color:var(--success-text);
 }
 
 .privacy-toggle.private{
     background:rgba(255,77,77,0.1);
-    border:1px solid #ff4d4d;
-    color:#ff8888;
+    border:1px solid var(--danger);
+    color:var(--danger-light);
 }
 
 .admin-checkbox-row{
@@ -254,7 +254,7 @@
     align-items:center;
     gap:8px;
     font-size:13px;
-    color:#A6A9C8;
+    color:var(--text-secondary);
     cursor:pointer;
 }
 
@@ -263,10 +263,10 @@
     align-items:center;
     gap:8px;
     padding:11px 20px;
-    background:#7c5cff;
+    background:var(--accent);
     border:none;
     border-radius:12px;
-    color:white;
+    color:var(--text-primary);
     font-weight:600;
     cursor:pointer;
     align-self:flex-end;
@@ -293,8 +293,8 @@
     align-items:flex-start;
     gap:12px;
     padding:12px;
-    background:#0f1126;
-    border:1px solid #24264d;
+    background:var(--bg-card);
+    border:1px solid var(--border);
     border-radius:12px;
 }
 
@@ -334,11 +334,11 @@
 }
 
 .like-title:hover{
-    color:#c4a0ff;
+    color:var(--accent-light);
 }
 
 .like-artist{
-    color:#8b8daa;
+    color:var(--text-muted);
     font-size:13px;
 }
 
@@ -346,10 +346,10 @@
     width:100%;
     min-height:44px;
     padding:8px 10px;
-    background:#101126;
-    border:1px solid #1b1d36;
+    background:var(--bg-card);
+    border:1px solid var(--bg-elevated);
     border-radius:8px;
-    color:#d0d2e8;
+    color:var(--text-body);
     font-size:13px;
     resize:vertical;
     box-sizing:border-box;
@@ -358,7 +358,7 @@
 .like-remove-btn{
     background:none;
     border:none;
-    color:#5c5f80;
+    color:var(--text-dim);
     cursor:pointer;
     padding:4px;
     font-size:16px;
@@ -366,12 +366,12 @@
 }
 
 .like-remove-btn:hover{
-    color:#ff4d4d;
+    color:var(--danger);
 }
 
 .profile-section-card{
-    background:#101126;
-    border:1px solid #24264d;
+    background:var(--bg-card);
+    border:1px solid var(--border);
     border-radius:16px;
     padding:20px;
 }
@@ -392,10 +392,10 @@
 
 .genre-chip{
     padding:5px 12px;
-    background:#1b1d36;
-    border:1px solid #24264d;
+    background:var(--bg-elevated);
+    border:1px solid var(--border);
     border-radius:999px;
-    color:#A6A9C8;
+    color:var(--text-secondary);
     font-size:13px;
 }
 
@@ -405,7 +405,7 @@
     gap:8px;
     margin-bottom:14px;
     padding-bottom:14px;
-    border-bottom:1px solid #1b1d36;
+    border-bottom:1px solid var(--bg-elevated);
 }
 
 .friend-request-row{
@@ -414,8 +414,8 @@
     justify-content:space-between;
     gap:10px;
     padding:8px 10px;
-    background:#0f1126;
-    border:1px solid #24264d;
+    background:var(--bg-card);
+    border:1px solid var(--border);
     border-radius:12px;
 }
 
@@ -445,24 +445,24 @@
 
 .friend-request-accept{
     background:rgba(51,209,122,0.12);
-    border:1px solid #33d17a;
-    color:#7ef0b0;
+    border:1px solid var(--success);
+    color:var(--success-text);
 }
 
 .friend-request-accept:hover{
-    background:#33d17a;
-    color:#0f1126;
+    background:var(--success);
+    color:var(--bg-card);
 }
 
 .friend-request-reject{
     background:rgba(255,77,77,0.1);
-    border:1px solid #ff4d4d;
-    color:#ff8888;
+    border:1px solid var(--danger);
+    color:var(--danger-light);
 }
 
 .friend-request-reject:hover{
-    background:#ff4d4d;
-    color:white;
+    background:var(--danger);
+    color:var(--text-primary);
 }
 
 .friends-grid{
@@ -476,8 +476,8 @@
     align-items:center;
     gap:8px;
     padding:8px 12px;
-    background:#0f1126;
-    border:1px solid #24264d;
+    background:var(--bg-card);
+    border:1px solid var(--border);
     border-radius:12px;
     cursor:pointer;
     transition:.2s;
@@ -485,14 +485,14 @@
 }
 
 .friend-chip:hover{
-    border-color:#8b5cf6;
+    border-color:var(--accent-strong);
 }
 
 .friend-avatar{
     width:28px;
     height:28px;
     border-radius:50%;
-    background:#1b1d36;
+    background:var(--bg-elevated);
     display:flex;
     align-items:center;
     justify-content:center;
@@ -508,6 +508,10 @@
 }
 
 .empty-text{
-    color:#5c5f80;
+    color:var(--text-dim);
     font-size:13px;
+}
+.profile-playlists{
+    min-width:0;
+    scroll-margin-top:24px;
 }

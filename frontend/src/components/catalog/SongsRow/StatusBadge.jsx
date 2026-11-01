@@ -1,22 +1,16 @@
 import "./StatusBadge.css";
 
-const statusColors = {
-
-    Relajante: "status-relax",
-
-    Enérgico: "status-energy",
-
-    Eufórico: "status-happy",
-
-    Mixto: "status-mixed",
-
-    Tenso: "status-tense"
-
+const statusClasses = {
+    Enérgico: "status-energico",
+    Intenso: "status-intenso",
+    Relajante: "status-relajante",
+    Melancólico: "status-melancolico",
+    Mixto: "status-mixto"
 };
 
 function StatusBadge({ status }) {
 
-    const className = statusColors[status] || "status-default";
+    const className = statusClasses[status] || "status-default";
 
     return (
 
@@ -24,7 +18,7 @@ function StatusBadge({ status }) {
 
             <span className="status-dot"></span>
 
-            {status}
+            {status ?? "—"}
 
         </span>
 

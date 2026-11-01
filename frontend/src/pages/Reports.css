@@ -1,0 +1,18 @@
+.reports-page{
+    display:flex;
+    flex-direction:column;
+    gap:28px;
+}
+
+.kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+    gap:20px;
+}
+
+.reports-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(380px, 1fr));
+    gap:24px;
+    align-items:start;
+}
