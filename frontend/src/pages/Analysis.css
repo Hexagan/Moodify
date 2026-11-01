@@ -9,3 +9,14 @@
     grid-template-columns:1fr 1fr;
     gap:24px;
 }
+
+.kpi-genre-link{
+    color:inherit;
+    text-decoration:none;
+}
+
+.kpi-genre-link:hover,
+.kpi-genre-link:focus-visible{
+    color:var(--accent-purple);
+    text-decoration:underline;
+}

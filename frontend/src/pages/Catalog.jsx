@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import Layout from "../components/layout/Layout";
 
@@ -15,7 +16,9 @@ import { X } from "react-bootstrap-icons";
 
 function Catalog() {
 
-    const [genero, setGenero] = useState("todos");
+    // The genre lives in the URL (?genero=k-pop), so other pages can link to a filtered catalogue.
+    const [searchParams, setSearchParams] = useSearchParams();
+    const genero = searchParams.get("genero") || "todos";
     const [estado, setEstado] = useState(null);
     const [sortBy, setSortBy] = useState(null);
     const [order, setOrder] = useState("asc");
@@ -59,7 +62,12 @@ function Catalog() {
     }
 
     function handleGenreChange(genre) {
-        setGenero(genre);
+        setSearchParams((prev) => {
+            const next = new URLSearchParams(prev);
+            if (genre === "todos") next.delete("genero");
+            else next.set("genero", genre);
+            return next;
+        }, { replace: true });
         setCurrentPage(1);
     }
 

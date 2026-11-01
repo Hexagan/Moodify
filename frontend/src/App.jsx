@@ -19,6 +19,8 @@ import SongDetail from "./pages/SongDetail";
 import Login from "./pages/Login";
 import PlaylistPage from "./pages/PlaylistPage";
 import Settings from "./pages/Settings";
+import Contact from "./pages/Contact";
+import Privacy from "./pages/Privacy";
 
 // Every page is browsable as a guest; actions that need an account (commenting, reacting,
 // posting) show a sign-in prompt in place. Only the ABM requires a role, via AdminRoute.
@@ -42,6 +44,8 @@ function App() {
                     <Route path="/cancion/:id" element={<SongDetail />} />
                     <Route path="/playlist/:id" element={<PlaylistPage />} />
                     <Route path="/configuracion" element={<Settings />} />
+                    <Route path="/contacto" element={<Contact />} />
+                    <Route path="/privacidad" element={<Privacy />} />
                     <Route path="/abm" element={<AdminRoute><ABM /></AdminRoute>} />
                 </Routes>
                 <PlayerDocks />

@@ -1,0 +1,26 @@
+.chart-genre-link,
+.analysis-chart-links .recharts-bar-rectangle{
+    cursor:pointer;
+}
+
+.chart-genre-link{
+    outline:none;
+    transition:fill .15s, opacity .15s;
+}
+
+text.chart-genre-link:hover,
+text.chart-genre-link:focus-visible,
+.chart-genre-link:hover text,
+.chart-genre-link:focus-visible text{
+    fill:var(--text-primary);
+    text-decoration:underline;
+}
+
+.chart-genre-link:focus-visible circle{
+    stroke:var(--text-primary);
+    stroke-width:2;
+}
+
+.analysis-chart-links .recharts-bar-rectangle:hover{
+    opacity:.8;
+}

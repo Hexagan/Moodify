@@ -1,14 +1,17 @@
 .genre-badge{
 
-    width:fit-content;
+    /* inline-block, not flex: text-overflow only applies to text in a block box. */
+    display:inline-block;
+
+    box-sizing:border-box;
+
+    max-width:100%;
+
+    overflow:hidden;
 
     white-space:nowrap;
 
-    display:inline-flex;
-
-    align-items:center;
-
-    justify-content:center;
+    text-overflow:ellipsis;
 
     padding:6px 14px;
 

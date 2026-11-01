@@ -331,6 +331,15 @@ export async function deleteComment(commentId) {
 
 // ---------- Artistas ----------
 
+export async function sendSuggestion({ uid, title, message }) {
+    const res = await fetch(`${BASE_URL}/contacto`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uid, title, message })
+    });
+    return jsonOrThrow(res);
+}
+
 async function jsonOrThrow(res) {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.detail || `Error ${res.status}`);

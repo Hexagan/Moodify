@@ -14,7 +14,7 @@ from sqlalchemy import text
 import database
 import storage
 from artist_index import ensure_artists_indexed
-from routers import canciones, stats, users, friends, comments, likes, media, artistas, musica, playlists, settings, subidas
+from routers import canciones, stats, users, friends, comments, likes, media, artistas, musica, playlists, settings, subidas, contacto
 
 database.Base.metadata.create_all(bind=database.engine)
 
@@ -69,3 +69,4 @@ app.include_router(musica.router)
 app.include_router(playlists.router)
 app.include_router(settings.router)
 app.include_router(subidas.router)
+app.include_router(contacto.router)

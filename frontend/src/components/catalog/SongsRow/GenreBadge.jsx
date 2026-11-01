@@ -26,7 +26,7 @@ function GenreBadge({ genre }) {
 
     return (
 
-        <span className={`genre-badge ${className}`}>
+        <span className={`genre-badge ${className}`} title={genre}>
 
             {genre}
 

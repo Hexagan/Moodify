@@ -4,16 +4,8 @@
 
     width:100%;
 
-    grid-template-columns:
-        2.5fr
-        84px
-        1fr
-        .9fr
-        .9fr
-        1fr
-        .9fr
-        1fr
-        60px;
+    /* Shared with the header (SongsTable.css), so every row lines up with it. */
+    grid-template-columns:var(--songs-cols);
 
     align-items:center;
 
@@ -41,7 +33,24 @@
 
     align-items:flex-start;
 
+    min-width:0;
+
+    max-width:100%;
+
     text-align:left;
+
+}
+
+.song-info h4,
+.song-info span{
+
+    max-width:100%;
+
+    overflow:hidden;
+
+    white-space:nowrap;
+
+    text-overflow:ellipsis;
 
 }
 
@@ -75,6 +84,8 @@
 
     font-size:15px;
 
+    font-variant-numeric:tabular-nums;
+
     justify-self:center;
 
 }
@@ -90,6 +101,8 @@
     gap:4px;
 
     justify-self:center;
+
+    font-variant-numeric:tabular-nums;
 
 }
 

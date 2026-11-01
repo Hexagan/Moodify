@@ -104,7 +104,7 @@ function SongsTable({ genero, busqueda, estado, sortBy, order, ranges, onSortCha
             <div className="table-header">
                 <span>Canción</span>
                 <span aria-hidden="true"></span>
-                <span>Género</span>
+                <span className="col-genre">Género</span>
 
                 {FILTER_COLUMNS.map((field) => {
                     const { label } = RANGE_COLUMNS[field];
@@ -120,13 +120,13 @@ function SongsTable({ genero, busqueda, estado, sortBy, order, ranges, onSortCha
                             key={field}
                             ref={open ? filterAnchorRef : undefined}
                             type="button"
-                            className={`th-btn ${sorted || range ? "active" : ""}`}
+                            className={`th-btn col-${field} ${sorted || range ? "active" : ""}`}
                             aria-haspopup="dialog"
                             aria-expanded={open}
                             onClick={() => setOpenFilter(open ? null : field)}
                             title={hints.length ? `${label}: ${hints.join(" · ")}` : `Filtrar u ordenar por ${label.toLowerCase()}`}
                         >
-                            {label}
+                            <span className="th-label">{label}</span>
                             {sorted && (order === "asc" ? <ArrowUp /> : <ArrowDown />)}
                             {range && <FunnelFill />}
                             {!sorted && !range && <Sliders className="th-hint" />}
@@ -136,11 +136,11 @@ function SongsTable({ genero, busqueda, estado, sortBy, order, ranges, onSortCha
 
                 <button
                     type="button"
-                    className={`th-btn ${estado ? "active" : ""}`}
+                    className={`th-btn col-estado ${estado ? "active" : ""}`}
                     onClick={onEstadoClick}
                     title={estado ? `Mostrando solo "${estado}" — clic para el siguiente estado` : "Filtrar por estado"}
                 >
-                    {estado ?? "Estado"}
+                    <span className="th-label">{estado ?? "Estado"}</span>
                     {estado ? <FunnelFill /> : <Funnel className="th-hint" />}
                 </button>
             </div>

@@ -167,3 +167,14 @@ class UserSettings(database.Base):
     # Free-form preferences written by the Configuración page (colour profiles, accessibility...).
     data = Column(JSON, nullable=False, default=dict)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+class Suggestion(database.Base):
+    __tablename__ = "suggestions"
+
+    # Kept even when the email fails, so nothing sent from the contact page is lost.
+    id = Column(Integer, primary_key=True, index=True)
+    uid = Column(String, ForeignKey("user_profiles.uid", ondelete="CASCADE"), nullable=False, index=True)
+    title = Column(String, nullable=False)
+    message = Column(Text, nullable=False)
+    emailed = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

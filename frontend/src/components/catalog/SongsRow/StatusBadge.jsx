@@ -14,11 +14,11 @@ function StatusBadge({ status }) {
 
     return (
 
-        <span className={`status-badge ${className}`}>
+        <span className={`status-badge ${className}`} title={status ?? undefined}>
 
             <span className="status-dot"></span>
 
-            {status ?? "—"}
+            <span className="status-label">{status ?? "—"}</span>
 
         </span>
 

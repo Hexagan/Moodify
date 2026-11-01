@@ -13,12 +13,15 @@ import {
 
 import { tooltipContentStyle, tooltipItemStyle, tooltipLabelStyle } from "../../styles/tooltipStyle";
 import { getTopGenres } from "../../services/api";
+import GenreTick from "./GenreTick";
+import { barGenre, useOpenGenre } from "../../utils/genreLinks";
 
 const colors = ["#3ba9ff", "#3d5bff", "#ff7a3d", "#a93dff", "#ff3da0", "#33d17a"];
 
 function TopGenresChart() {
 
     const [data, setData] = useState([]);
+    const openGenre = useOpenGenre();
 
     useEffect(() => {
         getTopGenres()
@@ -28,7 +31,7 @@ function TopGenresChart() {
 
     return (
 
-        <div className="top-genres-chart">
+        <div className="top-genres-chart analysis-chart-links">
 
             <ResponsiveContainer width="100%" height={240}>
 
@@ -46,7 +49,7 @@ function TopGenresChart() {
                         axisLine={false}
                         tickLine={false}
                         width={90}
-                        tick={{ fill:"#A6A9C8", fontSize:13 }}
+                        tick={<GenreTick onSelect={openGenre} />}
                     />
 
                     <Tooltip
@@ -57,7 +60,7 @@ function TopGenresChart() {
                         labelStyle={tooltipLabelStyle}
                     />
 
-                    <Bar dataKey="value" radius={[0,8,8,0]} barSize={14}>
+                    <Bar onClick={(item) => openGenre(barGenre(item))} dataKey="value" radius={[0,8,8,0]} barSize={14}>
                         {data.map((entry, i) => (
                             <Cell key={i} fill={colors[i % colors.length]} />
                         ))}

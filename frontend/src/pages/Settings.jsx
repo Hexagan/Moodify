@@ -2,7 +2,8 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { Link } from "react-router-dom";
 import {
     Palette2, UniversalAccess, Plug, Sliders2, ShieldLock, MoonStarsFill, SunFill, PlusLg,
-    Pencil, Trash3, CheckLg, Spotify, Youtube, PersonGear, Download, ClockHistory, ArrowCounterclockwise
+    Pencil, Trash3, CheckLg, Spotify, Youtube, PersonGear, Download, ClockHistory, ArrowCounterclockwise,
+    Envelope, ChatSquareHeart
 } from "react-bootstrap-icons";
 
 import Layout from "../components/layout/Layout";
@@ -29,6 +30,7 @@ const SECTIONS = [
     { id: "integraciones", label: "Integraciones", Icon: Plug },
     { id: "preferencias", label: "Preferencias", Icon: Sliders2 },
     { id: "datos", label: "Datos y cuenta", Icon: ShieldLock },
+    { id: "contacto", label: "Contacto", Icon: Envelope },
 ];
 
 const CATALOG_VIEW_KEY = "catalogViewMode"; // shared with the catalogue's own toggle
@@ -464,6 +466,22 @@ function DataSection({ user }) {
     );
 }
 
+// ---------- Contacto ----------
+
+function ContactSection() {
+    return (
+        <section id="contacto" className="settings-card">
+            <h2><Envelope aria-hidden="true" /> Contacto</h2>
+            <div className="settings-actions-list">
+                <Link to="/contacto" className="settings-action">
+                    <ChatSquareHeart aria-hidden="true" />
+                    <span><strong>Enviar una sugerencia</strong><small>Contanos qué agregarías o qué te parece el sitio.</small></span>
+                </Link>
+            </div>
+        </section>
+    );
+}
+
 function Settings() {
 
     const { user } = useAuth();
@@ -492,6 +510,7 @@ function Settings() {
                     <IntegrationsSection />
                     <PreferencesSection />
                     <DataSection user={user} />
+                    <ContactSection />
                 </div>
             </div>
         </Layout>

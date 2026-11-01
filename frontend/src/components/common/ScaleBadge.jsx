@@ -1,9 +1,10 @@
 import { scaleLevel } from "../../utils/moodScale";
 import "./ScaleBadge.css";
 
-function ScaleBadge({ value }) {
-    if (value == null) return <span className="scale-badge">—</span>;
-    return <span className={`scale-badge scale-${scaleLevel(value)}`}>{value}</span>;
+// Always two decimals, so 0.5 and 0.512 take the same width in a column.
+function ScaleBadge({ value, className = "" }) {
+    if (value == null) return <span className={`scale-badge ${className}`}>—</span>;
+    return <span className={`scale-badge scale-${scaleLevel(value)} ${className}`}>{Number(value).toFixed(2)}</span>;
 }
 
 export default ScaleBadge;

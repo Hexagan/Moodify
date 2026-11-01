@@ -13,12 +13,15 @@ import {
 
 import { tooltipContentStyle, tooltipItemStyle, tooltipLabelStyle } from "../../styles/tooltipStyle";
 import { getExplicitContent } from "../../services/api";
+import GenreTick from "./GenreTick";
+import { barGenre, useOpenGenre } from "../../utils/genreLinks";
 
 const colors = ["#a93dff", "#33d17a", "#ff3da0", "#ff9a3d", "#33c97a", "#ff4d4d"];
 
 function ExplicitContentChart() {
 
     const [data, setData] = useState([]);
+    const openGenre = useOpenGenre();
 
     useEffect(() => {
         getExplicitContent()
@@ -28,7 +31,7 @@ function ExplicitContentChart() {
 
     return (
 
-        <div className="explicit-chart">
+        <div className="explicit-chart analysis-chart-links">
 
             <ResponsiveContainer width="100%" height={240}>
 
@@ -46,7 +49,7 @@ function ExplicitContentChart() {
                         axisLine={false}
                         tickLine={false}
                         width={90}
-                        tick={{ fill:"#A6A9C8", fontSize:13 }}
+                        tick={<GenreTick onSelect={openGenre} />}
                     />
 
                     <Tooltip
@@ -57,7 +60,7 @@ function ExplicitContentChart() {
                         labelStyle={tooltipLabelStyle}
                     />
 
-                    <Bar dataKey="value" radius={[0,8,8,0]} barSize={14}>
+                    <Bar onClick={(item) => openGenre(barGenre(item))} dataKey="value" radius={[0,8,8,0]} barSize={14}>
                         {data.map((entry, i) => (
                             <Cell key={i} fill={colors[i % colors.length]} />
                         ))}

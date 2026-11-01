@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 import Layout from "../components/layout/Layout";
 
 import "./Analysis.css";
@@ -9,6 +11,7 @@ import TopGenresChart from "../components/analysis/TopGenresChart";
 import ExplicitContentChart from "../components/analysis/ExplicitContentChart";
 import LoudnessChart from "../components/analysis/LoudnessChart";
 import PsychMap from "../components/analysis/PsychMap";
+import { catalogGenreUrl } from "../utils/genreLinks";
 
 import {
     BarChartLine,
@@ -18,6 +21,14 @@ import {
     VolumeUp,
     MapFill
 } from "react-bootstrap-icons";
+
+function GenreValue({ genre, children }) {
+    return (
+        <Link to={catalogGenreUrl(genre)} className="kpi-genre-link" title={`Ver canciones de ${genre} en el catálogo`}>
+            {children}
+        </Link>
+    );
+}
 
 function Analysis() {
     return (
@@ -35,19 +46,19 @@ function Analysis() {
 
                     <KpiCard
                         icon={<GraphUpArrow />}
-                        value="K-Pop"
+                        value={<GenreValue genre="k-pop">K-Pop</GenreValue>}
                         label="Género más popular"
                     />
 
                     <KpiCard
                         icon={<LightningCharge />}
-                        value="Death Metal"
+                        value={<GenreValue genre="death-metal">Death Metal</GenreValue>}
                         label="Mayor energía media"
                     />
 
                     <KpiCard
                         icon={<HeartPulse />}
-                        value="Jazz"
+                        value={<GenreValue genre="jazz">Jazz</GenreValue>}
                         label="Mayor potencial relajante"
                     />
 
@@ -72,8 +83,9 @@ function Analysis() {
                     </ChartCard>
 
                     <ChartCard
-                        title="Loudness promedio por género"
+                        title="Géneros con mayor loudness"
                         icon={<VolumeUp />}
+                        badge="Top 8"
                     >
                         <LoudnessChart />
                     </ChartCard>

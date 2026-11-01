@@ -14,6 +14,8 @@ import {
 
 import { tooltipContentStyle, tooltipItemStyle, tooltipLabelStyle } from "../../styles/tooltipStyle";
 import { getPsychMap } from "../../services/api";
+import { svgLinkProps, useOpenGenre } from "../../utils/genreLinks";
+import "./genreLinks.css";
 
 function getQuadrantColor(valencia, energia, midValencia, midEnergia) {
     if (valencia < midValencia && energia >= midEnergia) return "#ff5c5c";
@@ -24,10 +26,10 @@ function getQuadrantColor(valencia, energia, midValencia, midEnergia) {
 
 const CustomDot = (props) => {
 
-    const { cx, cy, payload } = props;
+    const { cx, cy, payload, onSelect } = props;
 
     return (
-        <g>
+        <g {...svgLinkProps(payload.genre, onSelect)}>
             <circle cx={cx} cy={cy} r={5} fill={payload.color} />
             <text x={cx + 9} y={cy + 4} fontSize="12" fill="#E4E6F5">
                 {payload.genre}
@@ -40,6 +42,7 @@ const CustomDot = (props) => {
 function PsychMap() {
 
     const [points, setPoints] = useState([]);
+    const openGenre = useOpenGenre();
     const [midpoint, setMidpoint] = useState({ valencia: 50, energia: 50 });
 
     useEffect(() => {
@@ -100,7 +103,7 @@ function PsychMap() {
                         labelStyle={tooltipLabelStyle}
                     />
 
-                    <Scatter data={points} shape={<CustomDot />} />
+                    <Scatter data={points} shape={<CustomDot onSelect={openGenre} />} />
 
                 </ScatterChart>
 

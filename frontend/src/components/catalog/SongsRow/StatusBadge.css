@@ -2,6 +2,12 @@
 
     width:fit-content;
 
+    max-width:100%;
+
+    box-sizing:border-box;
+
+    min-width:0;
+
     white-space:nowrap;
 
     display:inline-flex;
@@ -24,7 +30,20 @@
 
 }
 
+.status-label{
+
+    min-width:0;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+}
+
 .status-dot{
+
+    flex-shrink:0;
+
 
     width:8px;
 

@@ -249,15 +249,6 @@
     color:var(--danger-light);
 }
 
-.admin-checkbox-row{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    font-size:13px;
-    color:var(--text-secondary);
-    cursor:pointer;
-}
-
 .save-btn{
     display:flex;
     align-items:center;

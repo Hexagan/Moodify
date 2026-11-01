@@ -8,10 +8,10 @@ import {
     signInWithPopup,
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
+    signOut,
     updateProfile
 } from "firebase/auth";
-import { upsertUser } from "../services/api";
-import { useAuth } from "../context/AuthContext";
+import { needsEmailVerification, sendVerificationEmail } from "../utils/emailVerification";
 
 function Login() {
 
@@ -20,28 +20,58 @@ function Login() {
     const [password, setPassword] = useState("");
     const [name, setName] = useState("");
     const [error, setError] = useState(null);
+    const [notice, setNotice] = useState(null);
+    const [canResend, setCanResend] = useState(false);
     const navigate = useNavigate();
-    const { setProfile } = useAuth();
 
+    function switchMode(next) {
+        setMode(next);
+        setError(null);
+        setNotice(null);
+        setCanResend(false);
+    }
+
+    // New email accounts get a confirmation link and stay signed out until they open it; the
+    // Moodify profile is created on the first sign-in after that (see AuthContext).
     async function handleEmailSubmit() {
         setError(null);
+        setNotice(null);
+        setCanResend(false);
         try {
             if (mode === "register") {
                 const cred = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(cred.user, { displayName: name });
-                const synced = await upsertUser({
-                    uid: cred.user.uid,
-                    display_name: name,
-                    email: cred.user.email,
-                    photo_url: cred.user.photoURL,
-                });
-                setProfile(synced);
-            } else {
-                await signInWithEmailAndPassword(auth, email, password);
+                await sendVerificationEmail(cred.user);
+                await signOut(auth);
+                setMode("login");
+                setNotice(`Te enviamos un correo a ${email}. Abrí el enlace para activar tu cuenta y después ingresá. Si no lo ves, revisá la carpeta de spam.`);
+                return;
+            }
+            const cred = await signInWithEmailAndPassword(auth, email, password);
+            if (needsEmailVerification(cred.user)) {
+                await signOut(auth);
+                setError("Tu correo todavía no está confirmado. Abrí el enlace que te enviamos al registrarte.");
+                setCanResend(true);
+                return;
             }
             navigate("/");
         } catch (err) {
             setError(err.message);
+        }
+    }
+
+    async function handleResend() {
+        setError(null);
+        try {
+            const cred = await signInWithEmailAndPassword(auth, email, password);
+            await sendVerificationEmail(cred.user);
+            await signOut(auth);
+            setCanResend(false);
+            setNotice(`Te reenviamos el correo de confirmación a ${email}.`);
+        } catch (err) {
+            setError(err.code === "auth/too-many-requests"
+                ? "Pediste varios correos seguidos. Esperá unos minutos y probá de nuevo."
+                : err.message);
         }
     }
 
@@ -77,7 +107,17 @@ function Login() {
                     {mode === "login" ? "Ingresá a tu cuenta" : "Creá tu cuenta"}
                 </p>
 
-                {error && <div className="login-error">{error}</div>}
+                {error && (
+                    <div className="login-error" role="alert">
+                        {error}
+                        {canResend && (
+                            <button type="button" className="login-resend" onClick={handleResend}>
+                                Reenviar el correo de confirmación
+                            </button>
+                        )}
+                    </div>
+                )}
+                {notice && <div className="login-notice" role="status">{notice}</div>}
 
                 <div className="login-oauth">
                     <button className="oauth-btn google" onClick={handleGoogle}>
@@ -133,12 +173,14 @@ function Login() {
 
                 <p className="login-switch">
                     {mode === "login"
-                        ? <>¿No tenés cuenta? <span onClick={() => setMode("register")}>Registrate</span></>
-                        : <>¿Ya tenés cuenta? <span onClick={() => setMode("login")}>Ingresá</span></>
+                        ? <>¿No tenés cuenta? <span onClick={() => switchMode("register")}>Registrate</span></>
+                        : <>¿Ya tenés cuenta? <span onClick={() => switchMode("login")}>Ingresá</span></>
                     }
                 </p>
 
                 <Link to="/" className="login-guest">Seguir como invitado</Link>
+
+                <Link to="/privacidad" className="login-legal">Política de privacidad</Link>
 
             </div>
 

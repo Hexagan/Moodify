@@ -96,7 +96,7 @@ function Sidebar() {
                     </div>
                     <div className="user-info">
                         <h4>Invitado</h4>
-                        <span>Iniciar sesión o registrarse</span>
+                        <span>Iniciar sesión</span>
                     </div>
                 </Link>
             )}
@@ -116,10 +116,13 @@ function Sidebar() {
                         <span>Dashboard</span>
                     </NavLink>
 
-                    <NavLink to="/mapa-emocional" className="nav-item" title={collapsed ? "Mapa Emocional" : undefined}>
-                        <Grid3x3GapFill />
-                        <span>Mapa Emocional</span>
-                    </NavLink>
+                    {/* Guests already get the emotional map on their dashboard. */}
+                    {user && (
+                        <NavLink to="/mapa-emocional" className="nav-item" title={collapsed ? "Mapa Emocional" : undefined}>
+                            <Grid3x3GapFill />
+                            <span>Mapa Emocional</span>
+                        </NavLink>
+                    )}
 
                     <NavLink to="/catalogo" className="nav-item" title={collapsed ? "Catálogo" : undefined}>
                         <MusicNoteBeamed />

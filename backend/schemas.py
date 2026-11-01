@@ -80,7 +80,6 @@ class UserProfileUpdate(BaseModel):
     public_email: Optional[bool] = None
     public_bio: Optional[bool] = None
     public_genres: Optional[bool] = None
-    role: Optional[str] = None
 
 class UserProfileResponse(BaseModel):
     uid: str

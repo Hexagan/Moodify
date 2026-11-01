@@ -1,5 +1,23 @@
 .songs-table{
 
+    /* Song | preview | genre | valence | energy | popularity | duration | status | edit.
+       Text columns may shrink to nothing (long values end in "…"); number columns are fixed,
+       wide enough for their header button. Below, narrower tables drop columns. */
+    --songs-cols:
+        minmax(0, 2.4fr)
+        84px
+        minmax(0, 1.1fr)
+        112px
+        112px
+        136px
+        116px
+        minmax(0, 1.3fr)
+        56px;
+
+    /* Narrow layouts are chosen by the table's own width, so collapsing the sidebar
+       brings columns back. */
+    container-type:inline-size;
+
     border:1px solid var(--border);
 
     border-radius:18px;
@@ -21,17 +39,7 @@
     /* The sort/filter buttons are taller than the plain labels; centre every cell on them. */
     align-items:center;
 
-    grid-template-columns:
-
-        2.5fr
-        84px
-        1fr
-        .9fr
-        .9fr
-        1fr
-        .9fr
-        1fr
-        60px;
+    grid-template-columns:var(--songs-cols);
 
     padding:18px 22px;
 
@@ -74,6 +82,16 @@
     white-space:nowrap;
     cursor:pointer;
     transition:background .15s, color .15s, border-color .15s;
+}
+
+.table-header > *{
+    min-width:0;
+    max-width:100%;
+}
+
+.th-label{
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
 
 .th-btn svg{
@@ -199,4 +217,58 @@
     .view-toggle{
         justify-self:center;
     }
+}
+
+/* ---------- narrower tables: drop the least essential columns ---------- */
+
+/* The `.songs-table .x` selectors outrank each cell's own display rule. Header buttons lose
+   their faint "filterable" hint icon first, which is what lets the number columns shrink. */
+@container (max-width: 1000px){
+    .songs-table .table-header,
+    .songs-table .song-row{
+        --songs-cols:
+            minmax(0, 2.4fr)
+            84px
+            minmax(0, 1.1fr)
+            96px
+            96px
+            108px
+            minmax(0, 1.3fr)
+            56px;
+    }
+    .songs-table .th-hint{ display:none; }
+    .songs-table .col-duracion{ display:none; }
+    .songs-table .popularity-cell .star-rating{ display:none; }
+    .songs-table .genre-badge{ padding-left:10px; padding-right:10px; }
+}
+
+@container (max-width: 840px){
+    .songs-table .table-header,
+    .songs-table .song-row{
+        --songs-cols:
+            minmax(0, 2.4fr)
+            80px
+            minmax(0, 1.1fr)
+            96px
+            108px
+            minmax(0, 1.3fr)
+            48px;
+    }
+    .songs-table .col-energia{ display:none; }
+}
+
+@container (max-width: 700px){
+    .songs-table .table-header,
+    .songs-table .song-row{
+        --songs-cols:
+            minmax(0, 2.4fr)
+            76px
+            minmax(0, 1.1fr)
+            108px
+            minmax(0, 1.2fr)
+            44px;
+        padding-left:14px;
+        padding-right:14px;
+    }
+    .songs-table .col-valencia{ display:none; }
 }

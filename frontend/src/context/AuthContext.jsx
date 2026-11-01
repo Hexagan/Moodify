@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { auth } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { upsertUser } from "../services/api";
+import { needsEmailVerification } from "../utils/emailVerification";
 
 const AuthContext = createContext(null);
 
@@ -12,7 +13,9 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+        const unsub = onAuthStateChanged(auth, (signedIn) => {
+            // An unconfirmed email account counts as a guest, and gets no profile until confirmed.
+            const firebaseUser = needsEmailVerification(signedIn) ? null : signedIn;
             setUser(firebaseUser);
             setLoading(false);
 

@@ -35,7 +35,6 @@ function Profile() {
     const [editing, setEditing] = useState(false);
     const [bio, setBio] = useState("");
     const [privacy, setPrivacy] = useState({ public_email: false, public_bio: true, public_genres: true });
-    const [isAdminChecked, setIsAdminChecked] = useState(false);
     const [feedback, setFeedback] = useState(null);
     const [avatarPreview, setAvatarPreview] = useState(null);
     const avatarInputRef = useRef(null);
@@ -52,7 +51,6 @@ function Profile() {
                 public_bio: data.public_bio,
                 public_genres: data.public_genres
             });
-            setIsAdminChecked(data.role === "dev");
         });
         getFriends(uid).then(setFriends);
         getUserLikes(uid).then(setLikes);
@@ -62,7 +60,7 @@ function Profile() {
     }, [uid, isOwnProfile]);
 
     async function handleSave() {
-        const updated = await updateUser(uid, { bio, ...privacy, role: isAdminChecked ? "dev" : "user" });
+        const updated = await updateUser(uid, { bio, ...privacy });
         setProfile(updated);
         if (isOwnProfile) setAuthProfile(updated);
         setEditing(false);
@@ -233,15 +231,6 @@ function Profile() {
                                 <PrivacyToggle value={privacy.public_genres} onChange={(v) => setPrivacy(p => ({ ...p, public_genres: v }))} />
                             </div>
                         </div>
-
-                        <label className="admin-checkbox-row">
-                            <input
-                                type="checkbox"
-                                checked={isAdminChecked}
-                                onChange={(e) => setIsAdminChecked(e.target.checked)}
-                            />
-                            <span>Establecer como administrador (placeholder)</span>
-                        </label>
 
                         <button className="save-btn" onClick={handleSave}>
                             <Check2 /> Guardar cambios

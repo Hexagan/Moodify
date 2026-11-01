@@ -24,24 +24,24 @@ function SongRow({ song, activeGenre }) {
         <div className="song-row">
 
             <div className="song-info" onClick={() => navigate(`/cancion/${song.id}`)} style={{ cursor: "pointer" }}>
-                <h4 className="song-title-link">{song.title}</h4>
-                <span>{song.artist}</span>
+                <h4 className="song-title-link" title={song.title}>{song.title}</h4>
+                <span title={song.artist}>{song.artist}</span>
             </div>
 
             <SnippetButton trackId={song.track_id} songId={song.id} title={song.title}/>
 
             <GenreBadge genre={shownGenre}/>
 
-            <ScaleBadge value={song.valence}/>
+            <ScaleBadge value={song.valence} className="col-valencia"/>
 
-            <ScaleBadge value={song.energy}/>
+            <ScaleBadge value={song.energy} className="col-energia"/>
 
-            <div className="popularity-cell">
+            <div className="popularity-cell col-popularidad">
                 <span>{song.popularity}</span>
                 <StarRating value={song.popularity}/>
             </div>
 
-            <span>{song.duration}</span>
+            <span className="col-duracion">{song.duration}</span>
 
             <StatusBadge status={song.status}/>
 

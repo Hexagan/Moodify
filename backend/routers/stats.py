@@ -74,21 +74,15 @@ def explicit_content(db: Session = Depends(database.get_db)):
     )
     return [{"genre": genre, "value": round(pct, 1)} for genre, pct in rows]
 
-LOUDNESS_GENRES = [
-    "jazz", "rock-n-roll", "blues", "electronic", "disco", "gospel",
-    "rock", "k-pop", "hard-rock", "black-metal", "funk", "alt-rock",
-    "electro", "industrial", "punk-rock", "hardcore", "heavy-metal",
-    "death-metal", "dance", "dubstep", "metal", "metalcore"
-]
+LOUDNESS_TOP = 8
 
 @router.get("/loudness-by-genre", response_model=list[schemas.GenreStat])
 def loudness_by_genre(db: Session = Depends(database.get_db)):
     rows = (
         db.query(models.Cancion.track_genre, func.avg(models.Cancion.loudness))
-        .filter(models.Cancion.track_genre.in_(LOUDNESS_GENRES))
         .group_by(models.Cancion.track_genre)
-        .order_by(func.avg(models.Cancion.loudness).asc())
-        .limit(len(LOUDNESS_GENRES))
+        .order_by(func.avg(models.Cancion.loudness).desc())
+        .limit(LOUDNESS_TOP)
         .all()
     )
     return [{"genre": genre, "value": round(loudness, 1)} for genre, loudness in rows]
