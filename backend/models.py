@@ -71,6 +71,8 @@ class Artist(database.Base):
     bio = Column(Text, nullable=True)
     bio_url = Column(String, nullable=True)
     bio_checked_at = Column(DateTime(timezone=True), nullable=True)
+    # Set when an admin edits the description, so the Wikipedia lookup never replaces it.
+    bio_manual = Column(Boolean, default=False)
 
 class ArtistThread(database.Base):
     __tablename__ = "artist_threads"

@@ -356,3 +356,94 @@
     .song-tile-cover{ transition:none; }
     .song-tile:hover .song-tile-cover{ transform:none; }
 }
+
+/* ---------- admin: edit the description ---------- */
+
+.artist-bio-edit{
+    align-self:flex-start;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 12px;
+    border:1px solid var(--border);
+    border-radius:999px;
+    background:var(--bg-elevated);
+    color:var(--text-secondary);
+    font:inherit;
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+}
+
+.artist-bio-edit:hover{
+    border-color:var(--accent-strong);
+    color:var(--text-primary);
+}
+
+.artist-bio-edit:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+}
+
+.artist-bio-editor{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    width:min(70ch, 100%);
+}
+
+.artist-bio-editor label{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+}
+
+.artist-bio-editor label > span{
+    color:var(--text-secondary);
+    font-size:12.5px;
+    font-weight:700;
+}
+
+.artist-bio-editor textarea,
+.artist-bio-editor input{
+    width:100%;
+    box-sizing:border-box;
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:var(--bg-elevated);
+    color:var(--text-primary);
+    font:inherit;
+    font-size:14px;
+    line-height:1.5;
+}
+
+.artist-bio-editor textarea{
+    resize:vertical;
+    min-height:120px;
+}
+
+.artist-bio-editor textarea:focus-visible,
+.artist-bio-editor input:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:1px;
+    border-color:transparent;
+}
+
+.artist-bio-editor small{
+    align-self:flex-end;
+    color:var(--text-muted);
+    font-size:12px;
+}
+
+.artist-bio-error{
+    margin:0;
+    color:var(--danger);
+    font-size:13px;
+}
+
+.artist-bio-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+}

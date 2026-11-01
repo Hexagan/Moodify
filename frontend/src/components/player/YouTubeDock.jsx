@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Link } from "react-router-dom";
-import { Youtube, BoxArrowUpRight, X } from "react-bootstrap-icons";
+import { Youtube, BoxArrowUpRight, X, SkipBackwardFill, SkipForwardFill, MusicNoteList } from "react-bootstrap-icons";
 
 import { usePlayer } from "../../context/PlayerContext";
 import { subscribeSnippet, isAnySnippetActive, stopSnippet } from "../../utils/snippetPlayer";
@@ -9,6 +9,8 @@ import "./YouTubeDock.css";
 
 const YT_API_URL = "https://www.youtube.com/iframe_api";
 const YT_API_TIMEOUT_MS = 10000;
+// When a playlist song's video can't be embedded, leave the message up briefly, then move on.
+const SKIP_AFTER_ERROR_MS = 2500;
 
 const ERROR_MESSAGES = {
     api: "No se pudo cargar el reproductor de YouTube.",
@@ -44,8 +46,9 @@ function loadYouTubeApi() {
 // as YouTube's embed terms require, and it hands the speakers over whenever a 10 s snippet starts.
 function YouTubeDock() {
 
-    const { track, closePlayer } = usePlayer();
+    const { track, queue, queueStatus, closePlayer, playNext, playPrevious } = usePlayer();
     const hostRef = useRef(null);
+    const nextRef = useRef(playNext); // the YT event handlers are created once; read the latest from here
     const playerRef = useRef(null); // set once the YT player reports ready
     const creatingRef = useRef(false);
     const wantedRef = useRef(null); // the video that should be loaded, read by onReady
@@ -53,7 +56,12 @@ function YouTubeDock() {
     const snippetActive = useSyncExternalStore(subscribeSnippet, isAnySnippetActive);
 
     const videoId = track?.videoId ?? null;
+    const playId = track?.playId ?? null;
     const open = Boolean(track);
+
+    useEffect(() => {
+        nextRef.current = playNext;
+    }, [playNext]);
     const error = failure.videoId && failure.videoId === videoId ? ERROR_MESSAGES[failure.code] ?? ERROR_MESSAGES.api : null;
 
     useEffect(() => {
@@ -66,6 +74,7 @@ function YouTubeDock() {
             return;
         }
         if (playerRef.current) {
+            // Also reached when the same video is played again (playId changed), which restarts it.
             playerRef.current.loadVideoById(videoId);
             return;
         }
@@ -101,8 +110,16 @@ function YouTubeDock() {
                         },
                         onStateChange: (e) => {
                             if (e.data === YT.PlayerState.PLAYING) stopSnippet();
+                            // Playing a playlist: continue with the next song (a no-op for single songs).
+                            if (e.data === YT.PlayerState.ENDED) nextRef.current?.();
                         },
-                        onError: (e) => setFailure({ videoId: wantedRef.current, code: e.data }),
+                        onError: (e) => {
+                            const failed = wantedRef.current;
+                            setFailure({ videoId: failed, code: e.data });
+                            setTimeout(() => {
+                                if (wantedRef.current === failed) nextRef.current?.();
+                            }, SKIP_AFTER_ERROR_MS);
+                        },
                     },
                 });
             })
@@ -110,7 +127,7 @@ function YouTubeDock() {
                 creatingRef.current = false;
                 setFailure({ videoId: wantedRef.current, code: "api" });
             });
-    }, [videoId]);
+    }, [videoId, playId]);
 
     useEffect(() => {
         if (snippetActive) playerRef.current?.pauseVideo();
@@ -156,6 +173,38 @@ function YouTubeDock() {
                     <strong>{track.title}</strong>
                     <span>{track.artist}</span>
                 </Link>
+            )}
+
+            {queue && (
+                <div className="yt-dock-queue">
+                    <Link to={`/playlist/${queue.id}`} className="yt-dock-queue-name" title={queue.name}>
+                        <MusicNoteList aria-hidden="true" />
+                        <span>{queue.name}</span>
+                    </Link>
+                    <span className="yt-dock-queue-pos">
+                        {queueStatus?.state === "loading" ? "Buscando…" : `${queue.index + 1} / ${queue.items.length}`}
+                    </span>
+                    <button
+                        type="button"
+                        className="yt-dock-btn"
+                        onClick={playPrevious}
+                        disabled={queue.index === 0}
+                        aria-label="Canción anterior"
+                        title="Anterior"
+                    >
+                        <SkipBackwardFill />
+                    </button>
+                    <button
+                        type="button"
+                        className="yt-dock-btn"
+                        onClick={playNext}
+                        disabled={queue.index >= queue.items.length - 1}
+                        aria-label="Canción siguiente"
+                        title="Siguiente"
+                    >
+                        <SkipForwardFill />
+                    </button>
+                </div>
             )}
 
             {error && (

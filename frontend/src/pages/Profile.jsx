@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./Profile.css";
 
@@ -22,6 +22,8 @@ function PrivacyToggle({ value, onChange }) {
     );
 }
 
+const VISIBLE_LIKES = 5;
+
 function Profile() {
 
     const { uid } = useParams();
@@ -40,6 +42,25 @@ function Profile() {
     const avatarInputRef = useRef(null);
     const [pendingRequests, setPendingRequests] = useState([]);
     const [likes, setLikes] = useState([]);
+    const likesListRef = useRef(null);
+
+    // Show the latest 5 likes and scroll for the rest. Rows vary in height (notes), so measure.
+    useLayoutEffect(() => {
+        const list = likesListRef.current;
+        if (!list) return;
+        function fit() {
+            const rows = list.children;
+            if (rows.length <= VISIBLE_LIKES) {
+                list.style.maxHeight = "";
+                return;
+            }
+            const top = list.getBoundingClientRect().top - list.scrollTop;
+            list.style.maxHeight = `${Math.ceil(rows[VISIBLE_LIKES - 1].getBoundingClientRect().bottom - top) + 2}px`;
+        }
+        fit();
+        window.addEventListener("resize", fit);
+        return () => window.removeEventListener("resize", fit);
+    }, [likes, profile]);
     const [noteDrafts, setNoteDrafts] = useState({});
 
     useEffect(() => {
@@ -254,9 +275,9 @@ function Profile() {
                     {(likes.length > 0 || isOwnProfile) && (
                         <div className="profile-section-card likes-card">
                             <h4><HeartFill /> Me gusta ({likes.length})</h4>
-                            <div className="likes-list">
+                            <div className="likes-list" ref={likesListRef}>
                                 {likes.map((like) => (
-                                    <div key={like.id} className="like-row">
+                                    <div key={like.id} className={`like-row ${!isOwnProfile && !like.note ? "compact" : ""}`}>
                                         <button
                                             type="button"
                                             className="like-cover"
@@ -272,14 +293,18 @@ function Profile() {
                                                 </span>
                                                 <span className="like-artist">{like.artists}</span>
                                             </div>
-                                            <textarea
-                                                className="like-note"
-                                                placeholder={isOwnProfile ? "Escribí tus pensamientos sobre esta canción..." : ""}
-                                                value={noteDrafts[like.id] ?? like.note ?? ""}
-                                                onChange={(e) => setNoteDrafts((prev) => ({ ...prev, [like.id]: e.target.value }))}
-                                                onBlur={() => handleSaveNote(like.id)}
-                                                readOnly={!isOwnProfile}
-                                            />
+                                            {/* Only the owner can write; visitors just read the note, if there is one. */}
+                                            {isOwnProfile ? (
+                                                <textarea
+                                                    className="like-note"
+                                                    placeholder="Escribí tus pensamientos sobre esta canción..."
+                                                    value={noteDrafts[like.id] ?? like.note ?? ""}
+                                                    onChange={(e) => setNoteDrafts((prev) => ({ ...prev, [like.id]: e.target.value }))}
+                                                    onBlur={() => handleSaveNote(like.id)}
+                                                />
+                                            ) : like.note && (
+                                                <p className="like-note-text">{like.note}</p>
+                                            )}
                                         </div>
                                         {isOwnProfile && (
                                             <button className="like-remove-btn" onClick={() => handleUnlike(like.id)}>

@@ -28,6 +28,7 @@ with database.engine.connect() as conn:
     conn.execute(text("ALTER TABLE song_media ADD COLUMN IF NOT EXISTS youtube_id VARCHAR"))
     conn.execute(text("ALTER TABLE song_media ADD COLUMN IF NOT EXISTS youtube_source VARCHAR"))
     conn.execute(text("ALTER TABLE song_media ADD COLUMN IF NOT EXISTS youtube_checked_at TIMESTAMPTZ"))
+    conn.execute(text("ALTER TABLE artists ADD COLUMN IF NOT EXISTS bio_manual BOOLEAN DEFAULT FALSE"))
     conn.commit()
 
 with database.SessionLocal() as db:

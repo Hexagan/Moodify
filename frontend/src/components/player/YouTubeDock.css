@@ -143,3 +143,66 @@
         transition:none;
     }
 }
+
+/* ---------- playlist queue ---------- */
+
+.yt-dock-queue{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    padding:6px 6px 6px 10px;
+    border-radius:10px;
+    background:var(--bg-elevated);
+}
+
+.yt-dock-queue-name{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex:1;
+    min-width:0;
+    color:var(--text-secondary);
+    font-size:12.5px;
+    font-weight:600;
+    text-decoration:none;
+}
+
+.yt-dock-queue-name span{
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+}
+
+.yt-dock-queue-name svg{
+    flex-shrink:0;
+    color:var(--accent-light);
+}
+
+.yt-dock-queue-name:hover{
+    color:var(--text-primary);
+}
+
+.yt-dock-queue-name:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+    border-radius:6px;
+}
+
+.yt-dock-queue-pos{
+    flex-shrink:0;
+    margin-right:4px;
+    color:var(--text-muted);
+    font-size:12px;
+    font-variant-numeric:tabular-nums;
+}
+
+.yt-dock-queue .yt-dock-btn,
+.yt-dock-queue .yt-dock-btn:last-child{
+    font-size:14px;
+}
+
+.yt-dock-queue .yt-dock-btn:disabled{
+    opacity:.35;
+    cursor:default;
+    background:none;
+}

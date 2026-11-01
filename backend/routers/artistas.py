@@ -5,13 +5,14 @@ from typing import Optional
 
 import requests
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from pydantic import BaseModel, Field
 from sqlalchemy import any_, func, or_
 from sqlalchemy.orm import Session
 
 import database
 import models
 import storage
-from routers.media import _normalize, _now, _is_fresh, NOT_FOUND_RETRY, TIMEOUT
+from routers.media import _normalize, _now, _is_fresh, require_admin, NOT_FOUND_RETRY, TIMEOUT
 from song_queries import deduped_query, rows_to_songs
 
 router = APIRouter(prefix="/artistas", tags=["Artistas"])
@@ -122,7 +123,7 @@ def _wikipedia_summary(lang, name):
 
 
 def _resolve_bio(db, artist):
-    if artist.bio or _is_fresh(artist.bio_checked_at, NOT_FOUND_RETRY):
+    if artist.bio_manual or artist.bio or _is_fresh(artist.bio_checked_at, NOT_FOUND_RETRY):
         return
     try:
         for lang in ("es", "en"):
@@ -485,6 +486,29 @@ def obtener_artista(artist_id: int, db: Session = Depends(database.get_db)):
     _resolve_bio(db, artist)
     threads = db.query(func.count(models.ArtistThread.id)).filter(models.ArtistThread.artist_id == artist_id).scalar()
     return {**_card(artist, threads, None), "bio": artist.bio, "bio_url": artist.bio_url}
+
+
+class ArtistBioIn(BaseModel):
+    admin_uid: str
+    bio: str = Field("", max_length=3000)
+    bio_url: str = Field("", max_length=500)
+
+
+@router.put("/{artist_id}/bio")
+def editar_bio(artist_id: int, body: ArtistBioIn, db: Session = Depends(database.get_db)):
+    """Admins replace (or clear) the description; it stays as written from then on."""
+    require_admin(db, body.admin_uid)
+    artist = _get_artist(db, artist_id)
+    bio_url = body.bio_url.strip()
+    if bio_url and not re.match(r"^https?://\S+$", bio_url):
+        raise HTTPException(status_code=422, detail="La fuente tiene que ser un enlace que empiece con http:// o https://.")
+    bio = body.bio.strip()
+    artist.bio = bio or None
+    artist.bio_url = (bio_url or None) if bio else None
+    artist.bio_manual = True
+    artist.bio_checked_at = _now()
+    db.commit()
+    return {"bio": artist.bio, "bio_url": artist.bio_url}
 
 
 @router.get("/{artist_id}/foto")

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Link45deg, Pencil, Trash3, PersonCircle, X, CheckLg } from "react-bootstrap-icons";
+import { Link45deg, Pencil, Trash3, PersonCircle, X, CheckLg, PlayFill, VolumeUpFill } from "react-bootstrap-icons";
 
 import Layout from "../components/layout/Layout";
 import PlaylistCover from "../components/playlists/PlaylistCover";
@@ -10,6 +10,7 @@ import ExportButtons from "../components/playlists/ExportButtons";
 import SongCover from "../components/common/SongCover";
 import StatusBadge from "../components/catalog/SongsRow/StatusBadge";
 import { useAuth } from "../context/AuthContext";
+import { usePlayer } from "../context/PlayerContext";
 import { getPlaylist, updatePlaylist, deletePlaylist, removeSongFromPlaylist } from "../services/api";
 import { mapCancion } from "../utils/mapCancion";
 import { playlistUrl } from "../utils/playlists";
@@ -25,6 +26,7 @@ function PlaylistPage() {
 
     const { id } = useParams();
     const { user } = useAuth();
+    const { queue, queueStatus, playQueue } = usePlayer();
     const navigate = useNavigate();
     const viewer = user?.uid;
     const requestKey = `${id}|${viewer ?? ""}`;
@@ -64,6 +66,17 @@ function PlaylistPage() {
 
     const songs = playlist.songs.map((s) => ({ ...mapCancion(s), duration_ms: s.duration_ms, added_at: s.added_at }));
     const owner = playlist.owner;
+    const playingHere = queue?.id === playlist.id;
+    const status = queueStatus?.id === playlist.id ? queueStatus.state : null;
+
+    // Plays in the YouTube dock from `index` on, continuing through the rest of the playlist.
+    function play(index = 0) {
+        playQueue({
+            id: playlist.id,
+            name: playlist.name,
+            items: songs.map((s) => ({ songId: s.id, trackId: s.track_id, title: s.title, artist: s.artist })),
+        }, index);
+    }
 
     function setPlaylist(next) {
         setResult((r) => ({ ...r, playlist: next }));
@@ -141,8 +154,13 @@ function PlaylistPage() {
 
                         {!editing && (
                             <div className="pl-actions">
+                                {songs.length > 0 && (
+                                    <button type="button" className="pl-btn primary" onClick={() => play(0)} disabled={status === "loading"}>
+                                        <PlayFill aria-hidden="true" /> {status === "loading" ? "Buscando…" : "Reproducir"}
+                                    </button>
+                                )}
                                 {playlist.visibility === "public" ? (
-                                    <button type="button" className="pl-btn primary" onClick={copyLink}>
+                                    <button type="button" className="pl-btn ghost" onClick={copyLink}>
                                         {copied ? <><CheckLg aria-hidden="true" /> Enlace copiado</> : <><Link45deg aria-hidden="true" /> Copiar enlace</>}
                                     </button>
                                 ) : playlist.is_owner && (
@@ -165,6 +183,10 @@ function PlaylistPage() {
                             </div>
                         )}
 
+                        {status === "empty" && (
+                            <p className="pl-play-note" role="status">No encontramos videos de YouTube para estas canciones.</p>
+                        )}
+
                         {!editing && user && <ExportButtons playlist={playlist} />}
 
                     </div>
@@ -179,9 +201,21 @@ function PlaylistPage() {
                     </p>
                 ) : (
                     <ol className="pl-songs">
-                        {songs.map((song, i) => (
-                            <li key={song.id} className="pl-song">
-                                <span className="pl-song-index">{i + 1}</span>
+                        {songs.map((song, i) => {
+                            const current = playingHere && queue.index === i;
+                            return (
+                            <li key={song.id} className={`pl-song ${current ? "playing" : ""}`}>
+                                <button
+                                    type="button"
+                                    className="pl-song-index"
+                                    onClick={() => play(i)}
+                                    aria-label={`Reproducir ${song.title} y seguir con la playlist`}
+                                    title="Reproducir desde acá"
+                                >
+                                    {current
+                                        ? <VolumeUpFill aria-hidden="true" />
+                                        : <><span className="pl-song-number">{i + 1}</span><PlayFill className="pl-song-play" aria-hidden="true" /></>}
+                                </button>
                                 <SongCover trackId={song.track_id} genre={song.genres[0]} className="pl-song-cover" />
                                 <Link to={`/cancion/${song.id}`} className="pl-song-text">
                                     <span className="pl-song-title">{song.title}</span>
@@ -202,7 +236,8 @@ function PlaylistPage() {
                                     </button>
                                 )}
                             </li>
-                        ))}
+                            );
+                        })}
                     </ol>
                 )}
 

@@ -373,6 +373,14 @@ export async function getArtist(id) {
     return jsonOrThrow(await fetch(`${BASE_URL}/artistas/${id}`));
 }
 
+export async function updateArtistBio(id, { adminUid, bio, bioUrl }) {
+    return jsonOrThrow(await fetch(`${BASE_URL}/artistas/${id}/bio`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ admin_uid: adminUid, bio, bio_url: bioUrl })
+    }));
+}
+
 export async function getArtistPicture(id) {
     return (await jsonOrThrow(await fetch(`${BASE_URL}/artistas/${id}/foto`))).picture_url;
 }

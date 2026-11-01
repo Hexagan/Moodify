@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, BoxArrowUpRight, ChatDotsFill, ChatLeftText, ImageFill, CameraVideoFill, PlusLg, MusicNoteBeamed } from "react-bootstrap-icons";
+import { ArrowLeft, BoxArrowUpRight, ChatDotsFill, ChatLeftText, ImageFill, CameraVideoFill, PlusLg, MusicNoteBeamed, PencilSquare } from "react-bootstrap-icons";
 
 import Layout from "../components/layout/Layout";
 import ArtistImage from "../components/artists/ArtistImage";
@@ -9,7 +9,7 @@ import { AuthorLine } from "../components/artists/ForumParts";
 import GuestPrompt from "../components/auth/GuestPrompt";
 import StatusBadge from "../components/catalog/SongsRow/StatusBadge";
 import { useAuth } from "../context/AuthContext";
-import { getArtist, getArtistSongs, getArtistThreads, createArtistThread, getSongThumbnail } from "../services/api";
+import { getArtist, getArtistSongs, getArtistThreads, createArtistThread, getSongThumbnail, updateArtistBio } from "../services/api";
 import { mapCancion } from "../utils/mapCancion";
 import { timeAgo } from "../utils/timeAgo";
 import "./ArtistDetail.css";
@@ -60,10 +60,73 @@ function ThreadRow({ artistId, thread }) {
     );
 }
 
+const BIO_MAX = 3000;
+
+// "Fuente: Wikipedia" for the automatic descriptions, the site's name for a source an admin set.
+function sourceLabel(url) {
+    try {
+        const host = new URL(url).hostname.replace(/^www\./, "");
+        return host.endsWith("wikipedia.org") ? "Wikipedia" : host;
+    } catch {
+        return "enlace";
+    }
+}
+
+function BioEditor({ artist, adminUid, onSaved, onCancel }) {
+    const [bio, setBio] = useState(artist.bio || "");
+    const [bioUrl, setBioUrl] = useState(artist.bio_url || "");
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState(null);
+
+    async function handleSubmit(e) {
+        e.preventDefault();
+        setSaving(true);
+        setError(null);
+        try {
+            onSaved(await updateArtistBio(artist.id, { adminUid, bio, bioUrl }));
+        } catch (err) {
+            setError(err.message);
+            setSaving(false);
+        }
+    }
+
+    return (
+        <form className="artist-bio-editor" onSubmit={handleSubmit}>
+            <label>
+                <span>Descripción</span>
+                <textarea
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    maxLength={BIO_MAX}
+                    rows={6}
+                    placeholder={`¿Quién es ${artist.name}? Dejalo vacío para no mostrar descripción.`}
+                    autoFocus
+                />
+                <small>{bio.length}/{BIO_MAX}</small>
+            </label>
+            <label>
+                <span>Fuente (opcional)</span>
+                <input
+                    type="url"
+                    value={bioUrl}
+                    onChange={(e) => setBioUrl(e.target.value)}
+                    placeholder="https://es.wikipedia.org/wiki/…"
+                />
+            </label>
+            {error && <p className="artist-bio-error" role="alert">{error}</p>}
+            <div className="artist-bio-actions">
+                <button type="button" className="forum-btn ghost" onClick={onCancel} disabled={saving}>Cancelar</button>
+                <button type="submit" className="forum-btn primary" disabled={saving}>{saving ? "Guardando…" : "Guardar"}</button>
+            </div>
+        </form>
+    );
+}
+
 function ArtistDetailView({ id }) {
 
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, isAdmin } = useAuth();
+    const [editingBio, setEditingBio] = useState(false);
 
     const [artist, setArtist] = useState(null);
     const [songs, setSongs] = useState([]);
@@ -122,15 +185,36 @@ function ArtistDetailView({ id }) {
                             <span><MusicNoteBeamed aria-hidden="true" /> {artist.song_count} {artist.song_count === 1 ? "canción" : "canciones"} en Moodify</span>
                             <span><ChatDotsFill aria-hidden="true" /> {artist.thread_count} {artist.thread_count === 1 ? "conversación" : "conversaciones"}</span>
                         </div>
-                        {artist.bio ? (
-                            <>
-                                <p className="artist-hero-bio">{artist.bio}</p>
-                                <a className="artist-hero-source" href={artist.bio_url} target="_blank" rel="noreferrer">
-                                    Fuente: Wikipedia <BoxArrowUpRight aria-hidden="true" />
-                                </a>
-                            </>
+                        {editingBio ? (
+                            <BioEditor
+                                artist={artist}
+                                adminUid={user.uid}
+                                onSaved={(saved) => {
+                                    setArtist((prev) => ({ ...prev, ...saved }));
+                                    setEditingBio(false);
+                                }}
+                                onCancel={() => setEditingBio(false)}
+                            />
                         ) : (
-                            <p className="artist-hero-bio muted">Todavía no tenemos una descripción de este artista.</p>
+                            <>
+                                {artist.bio ? (
+                                    <>
+                                        <p className="artist-hero-bio">{artist.bio}</p>
+                                        {artist.bio_url && (
+                                            <a className="artist-hero-source" href={artist.bio_url} target="_blank" rel="noreferrer">
+                                                Fuente: {sourceLabel(artist.bio_url)} <BoxArrowUpRight aria-hidden="true" />
+                                            </a>
+                                        )}
+                                    </>
+                                ) : (
+                                    <p className="artist-hero-bio muted">Todavía no tenemos una descripción de este artista.</p>
+                                )}
+                                {isAdmin && (
+                                    <button type="button" className="artist-bio-edit" onClick={() => setEditingBio(true)}>
+                                        <PencilSquare aria-hidden="true" /> Editar descripción
+                                    </button>
+                                )}
+                            </>
                         )}
                     </div>
                 </header>
