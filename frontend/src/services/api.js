@@ -307,9 +307,14 @@ export async function getUserLikes(uid) {
     return res.json();
 }
 
+// Avatars uploaded while running locally are relative /uploads paths.
+function fixCommentPhoto(comment) {
+    return { ...comment, user_photo: absolutizePhoto(comment.user_photo) };
+}
+
 export async function getComments(songId) {
     const res = await fetch(`${BASE_URL}/comentarios/${songId}`);
-    return res.json();
+    return (await res.json()).map(fixCommentPhoto);
 }
 
 export async function postComment(data) {
@@ -318,7 +323,7 @@ export async function postComment(data) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
     });
-    return res.json();
+    return fixCommentPhoto(await res.json());
 }
 
 export async function deleteComment(commentId) {

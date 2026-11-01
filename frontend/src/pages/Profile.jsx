@@ -9,7 +9,7 @@ import {
     getPendingRequests, acceptFriendRequest, rejectFriendRequest,
     getUserLikes, updateLikeNote, unlikeSong
 } from "../services/api";
-import { getGenreColor } from "../utils/genreColors";
+import SongCover from "../components/common/SongCover";
 import UserPlaylists from "../components/playlists/UserPlaylists";
 
 import { PersonCircle, ShieldCheck, MusicNoteBeamed, PeopleFill, PencilSquare, Check2, Globe, LockFill, CameraFill, BoxArrowRight, X, HeartFill, CollectionPlay } from "react-bootstrap-icons";
@@ -257,13 +257,14 @@ function Profile() {
                             <div className="likes-list">
                                 {likes.map((like) => (
                                     <div key={like.id} className="like-row">
-                                        <div
+                                        <button
+                                            type="button"
                                             className="like-cover"
-                                            style={{ background: getGenreColor(like.track_genre) }}
                                             onClick={() => navigate(`/cancion/${like.song_id}`)}
+                                            aria-label={`Abrir ${like.track_name || "la canción"}`}
                                         >
-                                            <span>{like.track_name?.[0] || "?"}</span>
-                                        </div>
+                                            <SongCover trackId={like.track_id} genre={like.track_genre} />
+                                        </button>
                                         <div className="like-info">
                                             <div className="like-title-row">
                                                 <span className="like-title" onClick={() => navigate(`/cancion/${like.song_id}`)}>

@@ -152,6 +152,15 @@ Guía completa de toda la documentación del proyecto Moodify.
 | [guia-instalacion.md](guia-instalacion.md) | Markdown | Developers | Setup paso a paso |
 | [diccionario-datos.md](diccionario-datos.md) | Markdown | Backend Dev / API User | Endpoints REST, modelos, campos |
 | [modulo-abm.md](modulo-abm.md) | Markdown | Backend Dev | Gestión de canciones (CRUD) |
+| [diagramas/arquitectura.drawio](diagramas/arquitectura.drawio) | draw.io + PNG | Todos | Diagrama de arquitectura (Vercel, Neon, Blob, Firebase, APIs externas) |
+| [diagramas/der.drawio](diagramas/der.drawio) | draw.io + PNG | Backend Dev / BD | Diagrama entidad-relación de las 14 tablas |
+
+### Presentación
+
+| Archivo | Tipo | Audiencia | Contenido |
+|---------|------|-----------|----------|
+| [presentacion/diapositivas.md](presentacion/diapositivas.md) | Markdown | Equipo | Texto y notas de las 10 diapositivas |
+| [presentacion/guion-demo.md](presentacion/guion-demo.md) | Markdown | Equipo | Recorrido de la demo, muestra de código y preguntas probables |
 
 ### Documentación de Producto
 

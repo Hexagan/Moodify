@@ -58,6 +58,7 @@ def obtener_likes(uid: str, db: Session = Depends(database.get_db)):
             "track_name": song.track_name if song else None,
             "artists": song.artists if song else None,
             "track_genre": song.track_genre if song else None,
+            "track_id": song.track_id if song else None,
         })
     return result
 

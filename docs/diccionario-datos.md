@@ -3,13 +3,13 @@
 **Proyecto:** Moodify — Emociones Musicales  
 **Archivo:** `docs/diccionario-datos.md`  
 **Autor:** Mauro Di Gallo — Visualización / QA / Docs  
-**Fecha:** Junio 2026
+**Fecha:** Junio 2026 · **Actualizado:** Noviembre 2026 (tablas de la aplicación)
 
 ---
 
 ## 1. Diccionario de Datos
 
-La tabla `songs` es la única tabla del sistema. Almacena los atributos musicales, emocionales y de identificación de cada canción proveniente del dataset de Spotify.
+La tabla `songs` contiene el catálogo: los atributos musicales, emocionales y de identificación de cada canción del dataset de Spotify. Las tablas de usuarios, actividad y foro se describen en la sección 1.3.
 
 > **Nota:** Una misma canción puede aparecer en múltiples filas si fue clasificada en varios géneros. Esto es intencional en el diseño del dataset (el organizador limitó a ~1.000 canciones por género).
 
@@ -61,20 +61,148 @@ El modelo ORM (`Cancion`) y el schema de respuesta (`CancionRespuesta`) solo exp
 
 > El backend actual omite campos adicionales como `instrumentalness`, `speechiness`, `liveness`, `tempo`, `key`, `mode` y `time_signature`.
 
+### 1.3 Tablas de la aplicación
+
+Además de `songs`, el backend crea 13 tablas propias al iniciar (`Base.metadata.create_all`). El diagrama entidad-relación está en [`docs/diagramas/der.drawio`](./diagramas/der.drawio).
+
+#### `user_profiles` — perfil de cada cuenta
+
+| Campo | Tipo | Restricción | Descripción |
+|-------|------|-------------|-------------|
+| `uid` | `VARCHAR` | PK | Identificador del usuario en Firebase Authentication |
+| `display_name` | `VARCHAR` | | Nombre visible |
+| `email` | `VARCHAR` | | Correo de la cuenta |
+| `photo_url` | `VARCHAR` | Opcional | Foto de perfil (Vercel Blob o proveedor de inicio de sesión) |
+| `bio` | `TEXT` | Opcional | Biografía |
+| `role` | `VARCHAR` | `user` / `dev` | `dev` = administrador. Solo se cambia con `backend/set_admin.py` |
+| `top_genres` | `VARCHAR` | Opcional | Géneros favoritos |
+| `public_email`, `public_bio`, `public_genres` | `BOOLEAN` | | Qué datos ven otros usuarios |
+| `created_at` | `TIMESTAMPTZ` | | Alta del perfil |
+
+#### `user_settings` — preferencias (1:1 con `user_profiles`)
+
+| Campo | Tipo | Restricción | Descripción |
+|-------|------|-------------|-------------|
+| `uid` | `VARCHAR` | PK, FK → `user_profiles` | Dueño |
+| `data` | `JSON` | NOT NULL | Modo de color, perfiles de color, accesibilidad, preferencias |
+| `updated_at` | `TIMESTAMPTZ` | | Última modificación |
+
+#### `friendships` — amistades
+
+| Campo | Tipo | Restricción | Descripción |
+|-------|------|-------------|-------------|
+| `id` | `INTEGER` | PK | |
+| `requester_uid` | `VARCHAR` | FK → `user_profiles` | Quien envía la solicitud |
+| `addressee_uid` | `VARCHAR` | FK → `user_profiles` | Quien la recibe |
+| `status` | `VARCHAR` | `pending` / `accepted` | Estado |
+| `created_at` | `TIMESTAMPTZ` | | |
+
+#### `song_likes` — me gusta y reacciones
+
+| Campo | Tipo | Restricción | Descripción |
+|-------|------|-------------|-------------|
+| `id` | `INTEGER` | PK | |
+| `user_uid` | `VARCHAR` | FK → `user_profiles` | |
+| `song_id` | `INTEGER` | FK → `songs` | |
+| `type` | `VARCHAR` | | Tipo de registro (por defecto `like`) |
+| `reaction` | `VARCHAR` | Opcional | Reacción elegida |
+| `note` | `TEXT` | Opcional | Nota personal |
+| `created_at` | `TIMESTAMPTZ` | | |
+
+Restricción `UNIQUE (user_uid, song_id)`.
+
+#### `song_history` — historial de escucha
+
+Una fila por usuario y canción (no un registro de eventos).
+
+| Campo | Tipo | Restricción | Descripción |
+|-------|------|-------------|-------------|
+| `id` | `INTEGER` | PK | |
+| `user_uid` | `VARCHAR` | FK → `user_profiles` | |
+| `song_id` | `INTEGER` | FK → `songs` | |
+| `preview_plays` | `INTEGER` | | Veces que reprodujo la preview |
+| `detail_views` | `INTEGER` | | Veces que abrió el detalle |
+| `first_played_at`, `last_played_at` | `TIMESTAMPTZ` | | Primera y última vez |
+
+Restricción `UNIQUE (user_uid, song_id)`.
+
+#### `comments` — comentarios por canción
+
+| Campo | Tipo | Restricción | Descripción |
+|-------|------|-------------|-------------|
+| `id` | `INTEGER` | PK | |
+| `song_id` | `INTEGER` | FK → `songs` | |
+| `user_uid` | `VARCHAR` | FK → `user_profiles` | Autor |
+| `user_name`, `user_photo` | `VARCHAR` | | Nombre y foto del autor al comentar |
+| `content` | `TEXT` | | Texto |
+| `created_at` | `TIMESTAMPTZ` | | |
+
+#### `playlists` y `playlist_songs`
+
+| Campo | Tipo | Restricción | Descripción |
+|-------|------|-------------|-------------|
+| `playlists.id` | `INTEGER` | PK | |
+| `playlists.owner_uid` | `VARCHAR` | FK → `user_profiles` | Dueño |
+| `playlists.name`, `description` | `VARCHAR`, `TEXT` | `name` NOT NULL | |
+| `playlists.visibility` | `VARCHAR` | `public` / `friends` / `private` | Quién puede verla |
+| `playlists.created_at`, `updated_at` | `TIMESTAMPTZ` | | |
+| `playlist_songs.id` | `INTEGER` | PK | |
+| `playlist_songs.playlist_id` | `INTEGER` | FK → `playlists`, ON DELETE CASCADE | |
+| `playlist_songs.song_id` | `INTEGER` | FK → `songs`, ON DELETE CASCADE | |
+| `playlist_songs.added_at` | `TIMESTAMPTZ` | | |
+
+Restricción `UNIQUE (playlist_id, song_id)`.
+
+#### `song_media` — caché de medios por canción
+
+| Campo | Tipo | Restricción | Descripción |
+|-------|------|-------------|-------------|
+| `track_id` | `VARCHAR` | PK | ID de Spotify. Se relaciona con `songs.track_id` sin FK, porque en `songs` se repite por género |
+| `thumbnail_url`, `thumbnail_checked_at` | `VARCHAR`, `TIMESTAMPTZ` | | Portada y fecha de la última búsqueda |
+| `preview_url`, `preview_source`, `preview_ref`, `preview_artwork_url`, `preview_checked_at` | `VARCHAR`, `TIMESTAMPTZ` | | Preview de audio: URL, origen (`itunes`, `deezer`, `manual`) y referencia para refrescarla |
+| `youtube_id`, `youtube_source`, `youtube_checked_at` | `VARCHAR`, `TIMESTAMPTZ` | | Video: ID y origen (`api`, `manual`, `none`) |
+
+#### `artists`, `artist_threads`, `artist_posts` — artistas y foro
+
+| Campo | Tipo | Restricción | Descripción |
+|-------|------|-------------|-------------|
+| `artists.id` | `INTEGER` | PK | |
+| `artists.name` | `VARCHAR` | UNIQUE | Nombre tal como aparece en `songs.artists` |
+| `artists.song_count`, `top_popularity` | `INTEGER` | | Calculados desde `songs` |
+| `artists.picture_url`, `bio`, `bio_url` y sus `_checked_at` | `VARCHAR`, `TEXT`, `TIMESTAMPTZ` | | Foto (Deezer) y biografía (Wikipedia) en caché |
+| `artist_threads.artist_id` | `INTEGER` | FK → `artists` | Artista del hilo |
+| `artist_threads.author_uid` | `VARCHAR` | FK → `user_profiles` | |
+| `artist_threads.title`, `body`, `media_url`, `media_type` | `VARCHAR`, `TEXT` | `title` NOT NULL | Contenido y adjunto |
+| `artist_threads.reply_count`, `last_activity_at` | `INTEGER`, `TIMESTAMPTZ` | | Para ordenar el foro |
+| `artist_posts.thread_id` | `INTEGER` | FK → `artist_threads` | Respuesta a un hilo |
+| `artist_posts.author_uid` | `VARCHAR` | FK → `user_profiles` | |
+| `artist_posts.body`, `media_url`, `media_type`, `edited_at` | `TEXT`, `VARCHAR`, `TIMESTAMPTZ` | | Contenido |
+
+#### `suggestions` — mensajes de la página de contacto
+
+| Campo | Tipo | Restricción | Descripción |
+|-------|------|-------------|-------------|
+| `id` | `INTEGER` | PK | |
+| `uid` | `VARCHAR` | FK → `user_profiles`, ON DELETE CASCADE | Autor |
+| `title` | `VARCHAR` | NOT NULL, máx. 120 caracteres | Título |
+| `message` | `TEXT` | NOT NULL, máx. 4000 caracteres | Mensaje |
+| `emailed` | `BOOLEAN` | | Si se pudo enviar por correo |
+| `created_at` | `TIMESTAMPTZ` | | |
+
 ---
 
 ## 2. Documentación de la API REST
 
-La API se ejecuta en `http://localhost:8000` y devuelve JSON. FastAPI expone documentación interactiva en `http://localhost:8000/docs`.
+La API se ejecuta en `http://localhost:8000` (local) y en `https://moodify-api-roan.vercel.app` (producción), y devuelve JSON. FastAPI expone documentación interactiva de los 75 endpoints en `/docs`; esta sección detalla los de canciones y estadísticas.
 
 ### 2.1 Información general
 
 | Propiedad | Valor |
 |-----------|-------|
-| URL base | `http://localhost:8000` |
+| URL base | `http://localhost:8000` · `https://moodify-api-roan.vercel.app` |
 | Formato de respuesta | JSON |
-| Autenticación | No hay |
-| CORS | Permitido para `http://localhost:5173` y Vercel |
+| Autenticación | Firebase en el frontend; los endpoints de usuario reciben el `uid` y las operaciones de administración exigen rol `dev` |
+| CORS | `http://localhost:5173`, `http://127.0.0.1:5173`, `https://moodify-one-rho.vercel.app` y los de `CORS_ORIGINS` |
 | Backend | `backend/main.py` |
 | Configuración BD | `backend/database.py` |
 

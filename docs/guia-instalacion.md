@@ -3,843 +3,273 @@
 **Proyecto:** Moodify — Emociones Musicales  
 **Archivo:** `docs/guia-instalacion.md`  
 **Autor:** Mauro Di Gallo — Visualización / QA / Docs  
-**Fecha:** Junio 2026
+**Fecha:** Junio 2026 · **Actualizado:** Noviembre 2026 (variables de entorno, Firebase, despliegue en Vercel + Neon)
+
+Esta guía cubre dos escenarios: correr Moodify en una computadora para desarrollo (secciones 1–5) y desplegarlo en Vercel (sección 6).
 
 ---
 
-## 1. Prerequisitos
+## 1. Prerrequisitos
 
-### 1.1 Software requerido
+| Software | Versión | Para qué |
+|----------|---------|----------|
+| Git | cualquiera reciente | Clonar el repositorio |
+| Python | 3.10 o superior | Backend |
+| Node.js | 20 o superior (con npm) | Frontend |
+| PostgreSQL | 15 o superior (el proyecto se desarrolló con 18) | Base de datos local; incluye `psql` y `pg_restore` |
 
-| Software | Versión | Propósito | Descargar |
-|----------|---------|----------|----------|
-| Git | 2.40+ | Control de versiones | https://git-scm.com |
-| Python | 3.10+ | Backend | https://www.python.org |
-| Node.js | 18+ | Frontend | https://nodejs.org |
-| npm | 8+ | Package manager JS | (se instala con Node.js) |
-| PostgreSQL | 13+ | Base de datos | https://www.postgresql.org |
+Cuentas necesarias según lo que se quiera probar:
 
-### 1.2 Verificar si tienes el software instalado
+| Servicio | Obligatorio | Para qué |
+|----------|:-----------:|----------|
+| Firebase (proyecto con Authentication) | Sí, para iniciar sesión | Cuentas de usuario |
+| Google Cloud (YouTube Data API v3) | No | Videos de YouTube |
+| Spotify for Developers | No | Autocompletado del ABM y conexión de cuentas (requiere Premium del dueño de la app) |
+| Resend | No | Envío de sugerencias por correo |
+| Vercel | Solo para desplegar | Hosting, Neon y Blob |
 
-Abre Terminal (Windows: PowerShell) y ejecuta:
+Verificar versiones:
 
 ```bash
-# Verificar Git
 git --version
-
-# Verificar Python
-python --version   # o python3 --version
-
-# Verificar Node.js y npm
+python --version
 node --version
-npm --version
-
-# Verificar PostgreSQL
-psql --version    # si PostgreSQL está en PATH
+psql --version
 ```
 
 ---
 
-## 2. Instalación Base de Datos
-
-### 2.1 Instalar PostgreSQL
-
-#### Windows
-
-1. Descargar instalador: https://www.postgresql.org/download/windows/
-2. Ejecutar el instalador
-3. Seguir el asistente, anotar la **contraseña del usuario `postgres`** (usaremos `1234` por defecto)
-4. Seleccionar puerto: **5432** (default)
-5. Finalizar instalación
-
-#### macOS
+## 2. Clonar el repositorio
 
 ```bash
-# Con Homebrew
-brew install postgresql@15
-brew services start postgresql@15
+git clone https://github.com/Hexagan/Moodify.git
+cd Moodify
 ```
 
-#### Linux (Ubuntu/Debian)
+---
+
+## 3. Base de datos local
+
+### 3.1 Crear la base
 
 ```bash
-sudo apt update
-sudo apt install postgresql postgresql-contrib
-sudo systemctl start postgresql
+psql -U postgres -h localhost -c "CREATE DATABASE moodify;"
 ```
 
-### 2.2 Verificar que PostgreSQL está corriendo
+### 3.2 Cargar el catálogo
 
-**Windows (PowerShell):**
-```powershell
-# Verificar que el servicio está activo
-Get-Service PostgreSQL*
-```
-
-**macOS / Linux:**
-```bash
-sudo systemctl status postgresql
-```
-
-### 2.3 Crear base de datos y usuario
-
-Abre Terminal y conéctate a PostgreSQL:
+`database/moodify.backup` es un respaldo en formato *custom* de PostgreSQL: se restaura con `pg_restore`, no con `psql`.
 
 ```bash
-psql -U postgres -h localhost
+pg_restore -U postgres -h localhost -d moodify --no-owner database/moodify.backup
 ```
 
-Se te pedirá la contraseña (default: `1234`).
-
-Luego, ejecuta en el prompt `postgres=#`:
-
-```sql
--- Crear base de datos
-CREATE DATABASE moodify;
-
--- Listar bases de datos (verificar)
-\l
-
--- Salir
-\q
-```
-
-### 2.4 Cargar datos en la base de datos
-
-**Opción A: Desde el schema SQL**
-
-```bash
-cd database/
-psql -U postgres -h localhost -d moodify -f schema.sql
-```
-
-**Opción B: Desde el backup**
-
-```bash
-cd database/
-psql -U postgres -h localhost -d moodify < moodify.backup
-```
-
-**Verificar que se cargaron los datos:**
+Verificar:
 
 ```bash
 psql -U postgres -h localhost -d moodify -c "SELECT COUNT(*) FROM songs;"
 ```
 
-Deberías ver un número cercano a 113.549 registros.
+Debe devolver alrededor de 113.550 filas.
+
+> Solo hace falta cargar `songs`. Las otras 13 tablas (usuarios, playlists, foro, etc.) las crea el backend automáticamente la primera vez que arranca.
 
 ---
 
-## 3. Instalación Backend
+## 4. Backend
 
-### 3.1 Abrir carpeta del proyecto
+### 4.1 Entorno virtual y dependencias
 
 ```bash
-# Navegar al proyecto
-cd "d:\01 - Tecnicatura superior en desarrollo de software\2do anio\PPII\Moodify\Moodify"
-
-# O desde PowerShell (si usas rutas con espacios)
-cd 'd:\01 - Tecnicatura superior en desarrollo de software\2do anio\PPII\Moodify\Moodify'
-```
-
-### 3.2 Crear entorno virtual (recomendado)
-
-**Windows (PowerShell):**
-
-```powershell
 cd backend
 python -m venv .venv
+
+# Windows (PowerShell)
 .\.venv\Scripts\Activate.ps1
-```
-
-Si ves un error de permisos, ejecuta:
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-
-**macOS / Linux:**
-
-```bash
-cd backend
-python3 -m venv .venv
+# macOS / Linux
 source .venv/bin/activate
-```
 
-Deberías ver `(.venv)` al inicio de la línea de comandos.
-
-### 3.3 Instalar dependencias Python
-
-Desde la carpeta `backend/` con el venv activado:
-
-```bash
 pip install -r requirements.txt
 ```
 
-### 3.4 Verificar conectividad a BD
+### 4.2 Variables de entorno
+
+Crear `backend/.env` (está excluido de Git). Todas son opcionales en local; sin ellas el backend usa la base `postgresql://postgres:1234@localhost:5432/moodify` y guarda los archivos subidos en `backend/uploads/`.
+
+```ini
+# Solo si la base local usa otra contraseña, host o nombre
+DATABASE_URL=postgresql://postgres:TU_CLAVE@localhost:5432/moodify
+
+# Videos de YouTube (Google Cloud → YouTube Data API v3 → clave de API)
+YOUTUBE_API_KEY=
+
+# Autocompletado desde Spotify en el ABM
+SPOTIFY_CLIENT_ID=
+SPOTIFY_CLIENT_SECRET=
+
+# Página de contacto: destinatario y clave de Resend (permiso "Sending access")
+CONTACT_TO=
+RESEND_API_KEY=
+```
+
+### 4.3 Levantar el servidor
 
 ```bash
-python -c "from database import SessionLocal; db = SessionLocal(); print('✅ Conexión OK')"
+uvicorn main:app --reload --port 8000
 ```
 
-Si ves "Conexión OK", ¡estamos bien!
+Al iniciar, el backend crea las tablas que falten y arma el índice de artistas (la primera vez puede tardar unos segundos). Documentación interactiva: http://localhost:8000/docs
 
-**Si hay error:**
-- Verifica que PostgreSQL está corriendo
-- Verifica la URL en `backend/database.py`
-- Verifica usuario y contraseña
+### 4.4 Crear un administrador
 
-### 3.5 Levantar el backend
-
-Desde `backend/` con venv activado:
+El rol de administrador habilita el ABM. La cuenta tiene que haber iniciado sesión en Moodify al menos una vez.
 
 ```bash
-uvicorn main:app --reload --host 127.0.0.1 --port 8000
+python set_admin.py persona@mail.com            # dar rol de administrador
+python set_admin.py persona@mail.com --remove   # quitarlo
+python set_admin.py --list                      # listar administradores
 ```
 
-**Resultado esperado:**
-
-```
-INFO:     Uvicorn running on http://127.0.0.1:8000
-INFO:     Application startup complete
-```
-
-Abre en navegador: **http://localhost:8000/docs**
-
-Deberías ver la documentación interactiva de Swagger.
+Agregar `--prod` usa la base de producción, leída de `backend/.env.local` (se genera con `vercel env pull .env.local` dentro de `backend/`).
 
 ---
 
-## 4. Instalación Frontend
+## 5. Frontend
 
-### 4.1 Abre otra Terminal (mantén el backend corriendo)
+### 5.1 Dependencias
+
+En otra terminal, desde la raíz del repositorio:
 
 ```bash
-# Navega a la carpeta raíz del proyecto
-cd "d:\01 - Tecnicatura superior en desarrollo de software\2do anio\PPII\Moodify\Moodify"
-
-# Entra a la carpeta frontend
 cd frontend
-```
-
-### 4.2 Instalar dependencias Node.js
-
-```bash
 npm install
 ```
 
-Esto crea carpeta `node_modules/` y descarga ~500 MB de paquetes.
+### 5.2 Variables de entorno
 
-### 4.3 Verificar que el backend es accesible
+Crear `frontend/.env`. Los valores de Firebase están en Firebase Console → Configuración del proyecto → Tus apps → app web.
 
-Abre otro terminal (cmd / PowerShell) sin cerrar los anteriores:
+```ini
+VITE_API_URL=http://localhost:8000
 
-```bash
-# Verificar que el backend responde
-curl http://localhost:8000/canciones
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+VITE_FIREBASE_MEASUREMENT_ID=
+
+# Opcionales: conectar YouTube y Spotify desde Configuración
+VITE_GOOGLE_CLIENT_ID=
+VITE_SPOTIFY_CLIENT_ID=
+# Spotify no acepta "localhost" como redirect: en local usar 127.0.0.1.
+# Sin esta variable se usa el origen actual + /configuracion (lo correcto en producción).
+VITE_SPOTIFY_REDIRECT_URI=http://127.0.0.1:5173/configuracion
 ```
 
-Deberías recibir un JSON con canciones.
+En Firebase Console → Authentication → Sign-in method, habilitar **Correo/contraseña**, **Google** y, si se usa, **Facebook**.
 
-### 4.4 Levantar el frontend
-
-Desde `frontend/`:
+### 5.3 Levantar el servidor de desarrollo
 
 ```bash
 npm run dev
 ```
 
-**Resultado esperado:**
+Abrir http://localhost:5173
 
-```
-VITE v8.0.12  ready in 123 ms
+### 5.4 Verificación
 
-➜  Local:   http://localhost:5173/
-➜  press h + enter to show help
-```
-
----
-
-## 5. Verificación de Instalación Completa
-
-Una vez que **backend**, **frontend** y **PostgreSQL** estén corriendo:
-
-### 5.1 Abrir la aplicación en navegador
-
-Ve a: **http://localhost:5173**
-
-Deberías ver:
-- ✅ Sidebar con opciones: Dashboard, Catálogo, Análisis, Bio-impacto
-- ✅ Dashboard con KPIs cargados
-- ✅ Gráficos visibles
-
-### 5.2 Probar interacciones básicas
-
-1. **Dashboard → Catálogo:**
-   - Haz clic en "Catálogo" en el Sidebar
-   - Deberías ver una tabla con 10 canciones
-
-2. **Filtrar por género:**
-   - Haz clic en un género (ej: "Rock")
-   - Tabla se actualiza
-
-3. **Buscar canción:**
-   - Escribe en la barra de búsqueda
-   - Tabla filtra en tiempo real
-
-### 5.3 Verificar consola de errores
-
-Abre **DevTools** (F12 en navegador):
-- **Tab "Console":** No debería haber errores rojos
-- **Tab "Network":** Las llamadas a `http://localhost:8000/*` deben tener status 200
+- El Dashboard y el Catálogo muestran datos.
+- Análisis muestra los cuatro gráficos; un clic en un género abre el catálogo filtrado.
+- Registrarse con correo envía un correo de verificación; después de confirmarlo se puede ingresar.
+- La consola del navegador (F12) no muestra errores de CORS.
 
 ---
 
-## 6. Parar y Reiniciar
+## 6. Despliegue en Vercel
 
-### 6.1 Parar servicios
+El proyecto usa dos proyectos de Vercel conectados al mismo repositorio de GitHub. Cada push a `main` despliega ambos.
 
-**Para el backend (Terminal 1):**
-```
-Ctrl+C
-```
+### 6.1 Backend (`moodify-api`)
 
-**Para el frontend (Terminal 2):**
-```
-Ctrl+C
-```
+1. Vercel → **Add New → Project** → importar el repositorio.
+2. **Root Directory:** `backend`. Vercel detecta FastAPI.
+3. **Storage → Create Database → Neon**, conectada a este proyecto. Agrega `DATABASE_URL` y `DATABASE_URL_UNPOOLED`.
+4. **Storage → Create → Blob** (acceso público), conectado a este proyecto. Agrega `BLOB_READ_WRITE_TOKEN`.
+5. **Settings → Environment Variables** (Production, marcadas como *Sensitive*): `YOUTUBE_API_KEY`, `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `RESEND_API_KEY`, `CONTACT_TO`. Si el frontend usa un dominio propio, agregarlo en `CORS_ORIGINS`.
+6. Desplegar y comprobar `https://<backend>.vercel.app/docs`.
 
-**Para PostgreSQL (Windows):**
-```powershell
-Get-Service PostgreSQL* | Stop-Service
-```
+### 6.2 Cargar los datos en Neon
 
-### 6.2 Reiniciar desde cero
+Desde una base local ya cargada (sección 3), con la URL **sin pool** de Neon (`DATABASE_URL_UNPOOLED`, se ve en Vercel → Storage → Neon):
 
 ```bash
-# Terminal 1: Backend
-cd backend
-.\.venv\Scripts\Activate.ps1  # (o source .venv/bin/activate en Mac/Linux)
-uvicorn main:app --reload --host 127.0.0.1 --port 8000
+pg_dump -U postgres -h localhost -Fc --no-owner --no-acl moodify -f moodify-local.dump
+pg_restore --no-owner --no-acl -d "URL_SIN_POOL_DE_NEON" moodify-local.dump
+```
 
-# Terminal 2: Frontend
-cd frontend
-npm run dev
+### 6.3 Frontend (`moodify`)
 
-# El navegador abre automáticamente en localhost:5173
+1. Vercel → **Add New → Project** → mismo repositorio.
+2. **Root Directory:** `frontend`. Framework: Vite (`frontend/vercel.json` ya redirige todas las rutas a `index.html`).
+3. Variables de entorno: `VITE_API_URL` con la URL del backend y todas las `VITE_FIREBASE_*`. Vercel puede marcar `VITE_FIREBASE_API_KEY` como credencial: agregarla como variable de tipo *config*, porque la configuración web de Firebase es pública por diseño.
+4. Desplegar.
+
+### 6.4 Configuración en servicios externos
+
+| Servicio | Dónde | Qué agregar |
+|----------|-------|-------------|
+| Firebase | Authentication → Settings → Authorized domains | El dominio del frontend (`moodify-one-rho.vercel.app`) |
+| Firebase | Authentication → Templates → Verificación de correo | Nombre del remitente "Moodify" y texto en español (opcional, mejora la entrega) |
+| Google Cloud | Credenciales → cliente OAuth → Orígenes autorizados | `https://moodify-one-rho.vercel.app` |
+| Spotify | Dashboard de la app → Redirect URIs | `https://moodify-one-rho.vercel.app/configuracion` |
+| Resend | API Keys | Clave con permiso "Sending access". Sin dominio propio, solo entrega al correo con que se creó la cuenta de Resend |
+
+### 6.5 Verificación en producción
+
+```bash
+curl -I https://moodify-one-rho.vercel.app/
+curl https://moodify-api-roan.vercel.app/subidas/config      # {"direct":true} si Blob está configurado
+curl https://moodify-api-roan.vercel.app/stats/kpis
+```
+
+Rollback: Vercel → Deployments → deployment anterior → **Promote to Production**.
+
+---
+
+## 7. Troubleshooting
+
+| Problema | Solución |
+|----------|----------|
+| `pg_restore: error: input file does not appear to be a valid archive` | Verificar la ruta a `database/moodify.backup`; `psql < moodify.backup` no funciona con este formato. |
+| `connection refused` al iniciar el backend | PostgreSQL no está corriendo, o `DATABASE_URL` apunta a otro host o contraseña. |
+| `ModuleNotFoundError` en el backend | Activar el entorno virtual y repetir `pip install -r requirements.txt`. |
+| El frontend no muestra datos | Revisar `VITE_API_URL` y que el backend responda en `/docs`. Reiniciar `npm run dev` después de cambiar `.env`. |
+| `auth/unauthorized-domain` al iniciar sesión | Agregar el dominio en los dominios autorizados de Firebase. |
+| `auth/configuration-not-found` | El método de inicio de sesión no está habilitado en Firebase. |
+| El puerto 5173 está ocupado | `npm run dev -- --port 5174` (y agregar ese origen a `CORS_ORIGINS`). |
+| 502 en el autocompletado de Spotify | La app de Spotify requiere Premium del dueño; usar las otras fuentes. |
+| Error de CORS en producción | El dominio del frontend debe estar en la lista de `backend/main.py` o en `CORS_ORIGINS`. |
+
+---
+
+## 8. Comandos rápidos
+
+```bash
+# Backend
+cd backend && .\.venv\Scripts\Activate.ps1 && uvicorn main:app --reload --port 8000
+
+# Frontend
+cd frontend && npm run dev
+
+# Lint y build del frontend
+cd frontend && npm run lint && npm run build
+
+# Administradores
+cd backend && python set_admin.py --list
 ```
 
 ---
 
-## 7. Configuración (Cambios Opcionales)
-
-### 7.1 Cambiar puerto del backend
-
-Si el puerto 8000 está ocupado, modifica en `backend/main.py`:
-
-```bash
-uvicorn main:app --reload --host 127.0.0.1 --port 9000
-```
-
-Luego, actualiza la URL en `frontend/src/services/api.js`:
-
-```javascript
-const API_BASE_URL = 'http://localhost:9000';
-```
-
-### 7.2 Cambiar contraseña PostgreSQL
-
-Si usas otra contraseña en PostgreSQL, actualiza en `backend/database.py`:
-
-```python
-SQLALCHEMY_DATABASE_URL = "postgresql://postgres:TU_CONTRASEÑA@localhost:5432/moodify"
-```
-
-### 7.3 Usar base de datos remota
-
-Si usas un servidor PostgreSQL remoto:
-
-```python
-SQLALCHEMY_DATABASE_URL = "postgresql://usuario:contraseña@mi.servidor.com:5432/moodify"
-```
-
----
-
-## 14. Troubleshooting de Instalación
-
----
-
-## 8. Troubleshooting de Instalación
-
-**Problema:** `python: command not found` o `python is not recognized`
-
-**Solución:**
-1. Desinstala Python completamente
-2. Reinstala desde https://www.python.org
-3. **Marca la opción "Add Python to PATH"**
-4. Reinicia Terminal / PowerShell
-
-### 14.2 Error: "PostgreSQL no puede conectar"
-
-**Problema:** `ConnectionRefusedError: 111` en backend
-
-**Solución:**
-1. Verifica que PostgreSQL está corriendo:
-   ```bash
-   psql -U postgres -h localhost -c "SELECT 1;"
-   ```
-2. Si no abre: Inicia PostgreSQL
-3. Si persiste: Verifica contraseña en `database.py`
-
-### 14.3 Error: "Puerto 5173 ya en uso"
-
-**Problema:** `Error: Port 5173 is already in use`
-
-**Solución:**
-1. Mata el proceso en ese puerto:
-   ```bash
-   # Windows PowerShell
-   Get-Process -Id (Get-NetTCPConnection -LocalPort 5173).OwningProcess | Stop-Process
-   
-   # macOS/Linux
-   lsof -ti:5173 | xargs kill -9
-   ```
-2. O usa otro puerto:
-   ```bash
-   # En frontend/vite.config.js, cambia:
-   # port: 5174
-   ```
-
-### 14.4 Error: "npm: command not found"
-
-**Problema:** npm no está instalado
-
-**Solución:**
-1. Desinstala Node.js completamente
-2. Reinstala desde https://nodejs.org (LTS)
-3. Reinicia Terminal
-
-### 14.5 Error: "modules not found" en backend
-
-**Problema:** `ModuleNotFoundError: No module named 'fastapi'`
-
-**Solución:**
-1. Verifica que el venv está activado (deberías ver `(.venv)` en el prompt)
-2. Reinstala dependencias:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-### 14.6 Error: "Database moodify does not exist"
-
-**Problema:** Backend no puede conectar a base de datos
-
-**Solución:**
-1. Crea la BD si no existe:
-   ```bash
-   psql -U postgres -h localhost -c "CREATE DATABASE moodify;"
-   ```
-2. Carga el schema:
-   ```bash
-   psql -U postgres -h localhost -d moodify -f database/schema.sql
-   ```
-
----
-
-## 9. Build para Producción
-
-### 9.1 Build del frontend
-
-```bash
-cd frontend
-npm run build
-```
-
-Genera carpeta `dist/` con archivos optimizados (~300 KB gzippeados).
-
----
-
-## 10. Despliegue en Vercel (Frontend)
-
-**Vercel** es la plataforma oficial para Vite/React. Proporciona hosting gratuito con CDN global, SSL automático y depliegue continuo desde GitHub.
-
-### 10.1 Configuración previa
-
-1. **Asegurarse de que el repositorio está en GitHub**
-   ```bash
-   git remote -v
-   # Debería mostrar una URL de GitHub
-   ```
-
-2. **Verificar que el build funciona localmente**
-   ```bash
-   cd frontend
-   npm run build
-   # Si ves "dist/" sin errores, éstamos listos
-   ```
-
-### 10.2 Pasos de despliegue en Vercel
-
-**Opción A: Desde Vercel Dashboard (recomendado)**
-
-1. Ir a https://vercel.com
-2. Crear cuenta o login con GitHub
-3. Click "Add New..." → "Project"
-4. Seleccionar repositorio `Moodify` de GitHub
-5. Vercel detecta automáticamente:
-   - Framework: `Vite`
-   - Build Command: `npm run build`
-   - Output Directory: `dist`
-6. Click "Deploy"
-
-**Opción B: Desde CLI**
-
-```bash
-# Instalar Vercel CLI global
-npm install -g vercel
-
-# Desde la carpeta raíz del proyecto
-cd "d:\01 - Tecnicatura superior en desarrollo de software\2do anio\PPII\Moodify\Moodify"
-
-# Login con GitHub
-vercel login
-
-# Deploy frontend
-cd frontend
-vercel
-
-# Sigue los prompts:
-# ✅ Confirmar scope (tu usuario GitHub)
-# ✅ Link to existing project? (no, es nuevo)
-# ✅ Project name: moodify-fe
-# ✅ Root directory: ./frontend (o dejar vacío)
-```
-
-### 10.3 Configurar variables de entorno en Vercel
-
-Este es el paso **CRÍTICO** para conectar el frontend con el backend en Railway.
-
-1. En Vercel Dashboard → Seleccionar proyecto → Settings
-2. Tab "Environment Variables"
-3. Agregar nueva variable:
-   - **Name:** `VITE_API_URL`
-   - **Value:** `https://api-moodify.railway.app` (o la URL de tu backend en Railway)
-   - **Environments:** Seleccionar "Production", "Preview", "Development"
-4. Click "Save"
-5. **Redeploy** desde Deployments tab para aplicar cambios
-
-**Nota:** Se debe usar exactamente `VITE_API_URL` para que coincida con `import.meta.env.VITE_API_URL` configurado en `frontend/src/services/api.js`. Si despliegas el backend en Railway primero, obtendrás la URL. Si no, usa un placeholder y actualiza después.
-
-### 10.4 Verificación del despliegue
-
-Después del deploy, Vercel te muestra una URL final como: `https://moodify-one-rho.vercel.app`
-
-```bash
-# Verificar que la app carga
-curl -I https://moodify-one-rho.vercel.app
-# Debe devolver: HTTP/1.1 200 OK
-
-# Abrir en navegador y revisar:
-# ✅ Página carga sin errores
-# ✅ Dashboard muestra gráficos interactivos con Recharts
-# ✅ DevTools (F12) → Console: sin errores rojos de CORS u otros
-# ✅ DevTools → Network: llamadas a API status 200 (datos reales del backend)
-```
-
-### 10.5 Configurar despliegue automático
-
-Vercel monitorea tu repositorio GitHub automáticamente:
-
-- **Push a `main`:** Deploya a producción instantáneamente
-- **Push a otra rama:** Crea preview deployment (URL temporal)
-- **Pull Request:** Genera URL de preview para testing antes de merge
-
-**Para deshabilitar despliegues automáticos:**
-- Settings → Git → Ignored Build Step
-
-### 10.6 Troubleshooting Vercel
-
-| Problema | Causa | Solución |
-|----------|-------|----------|
-| Build falla con "Module not found" | `package.json` tiene dependencias faltantes | Ejecutar `npm install` localmente, commitear `package-lock.json` |
-| App carga pero API devuelve 404 o falla | `VITE_API_URL` está mal configurada o no cargada | Revisar variable en Vercel Settings y redeployar la app |
-| CORS error en navegador | Backend no tiene Vercel en `allow_origins` | Actualizar backend CORS (ver sección 11) |
-| Logs no se actualizan | Caché de CDN | Ir a Settings → Git → Redeploy from Cache → deshabilitar |
-
----
-
-## 11. Despliegue en Railway (Backend)
-
-**Railway** es una plataforma moderna que gestiona servidores, bases de datos y variables de entorno. Ideal para backends Python/FastAPI.
-
-### 11.1 Configuración previa
-
-1. **Instalar Railway CLI** (opcional, pero recomendado)
-   ```bash
-   npm install -g @railway/cli
-   ```
-
-2. **Asegurarse de que requierements.txt está actualizado**
-   ```bash
-   cd backend
-   pip freeze > requirements.txt
-   git add requirements.txt
-   git commit -m "Update dependencies"
-   git push
-   ```
-
-3. **Agregar Gunicorn a requirements.txt** (para producción)
-   ```bash
-   pip install gunicorn
-   pip freeze > requirements.txt
-   ```
-
-### 11.2 Pasos de despliegue en Railway
-
-**Opción A: Desde Railway Dashboard (recomendado)**
-
-1. Ir a https://railway.app
-2. Sign up / Login con GitHub
-3. Click "New Project" → "Deploy from GitHub repo"
-4. Autorizar GitHub y seleccionar repositorio `Moodify`
-5. Railway inicia el build automáticamente
-   - Detecta Python
-   - Instala `requirements.txt`
-   - Inicia el servicio
-
-**Opción B: Desde CLI**
-
-```bash
-# Login
-railway login
-
-# Desde la raíz del proyecto
-cd "d:\01 - Tecnicatura superior en desarrollo de software\2do anio\PPII\Moodify\Moodify"
-
-# Crear proyecto en Railway
-railway init
-
-# Seguir prompts y confirmar
-railway up
-```
-
-### 11.3 Crear base de datos PostgreSQL en Railway
-
-1. En Railway Dashboard → New Service
-2. Seleccionar "PostgreSQL"
-3. Railway crea la BD automáticamente
-4. Copiar variables de conexión:
-   - `PGHOST`
-   - `PGPORT`
-   - `PGUSER`
-   - `PGPASSWORD`
-   - `PGDATABASE`
-   - O usar `DATABASE_URL` que combina todo
-
-### 11.4 Configurar variables de entorno en Railway
-
-1. En Railway Dashboard → Backend service → Variables
-2. Agregar:
-   ```
-   DATABASE_URL=postgresql://user:password@host:5432/moodify
-   RAILWAY_ENVIRONMENT=production
-   FRONTEND_URL=https://moodify-one-rho.vercel.app
-   ```
-3. Click "Apply"
-
-### 11.5 Cargar datos iniciales en BD
-
-Después de crear la BD en Railway:
-
-```bash
-# Usar connection string de Railway
-# Reemplaza USER, PASSWORD, HOST, PORT:
-psql postgresql://USER:PASSWORD@HOST:PORT/moodify -f database/moodify.backup
-
-# O si tienes backup en CSV:
-psql postgresql://USER:PASSWORD@HOST:PORT/moodify -f database/schema.sql
-```
-
-**Verificar carga:**
-```bash
-psql postgresql://USER:PASSWORD@HOST:PORT/moodify -c "SELECT COUNT(*) FROM songs;"
-# Debería devolver algo como: 113549
-```
-
-### 11.6 Configurar comando de start en Railway
-
-En Railway Dashboard → Backend service → Deploy:
-
-- **Build Command:** `pip install -r requirements.txt`
-- **Start Command:** `gunicorn -w 4 -b 0.0.0.0:8000 main:app`
-- **Port:** `8000`
-
-### 11.7 Actualizar CORS en backend
-
-Para que el frontend en Vercel pueda llamar al backend en Railway:
-
-Modificar `backend/main.py`:
-
-```python
-from fastapi.middleware.cors import CORSMiddleware
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "https://moodify-one-rho.vercel.app",  # URL oficial de producción en Vercel
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-```
-
-**Commit y push:**
-```bash
-git add backend/main.py
-git commit -m "Update CORS for production Vercel URL"
-git push
-```
-
-Railway detectará el cambio y redeploya automáticamente.
-
-### 11.8 Verificación del despliegue del Backend
-
-Railway asigna una URL como: `https://api-moodify.railway.app`
-
-```bash
-# Verificar que el backend responde
-curl https://api-moodify.railway.app/docs
-# Debería devolver el HTML de la documentación interactiva de Swagger
-
-# Probar endpoint de canciones
-curl https://api-moodify.railway.app/canciones
-# Debería devolver JSON con las canciones
-
-# Abre en tu navegador para verificar Swagger UI
-# https://api-moodify.railway.app/docs
-```
-
-### 11.9 Monitoreo en Railway
-
-**Railway Dashboard ofrece:**
-
-- **Logs:** Todos los errores y solicitudes HTTP se registran en tiempo real en la pestaña Logs.
-- **Métricas:** Uso de CPU, memoria RAM, tiempo de respuesta y cantidad de conexiones concurrentes.
-- **Health checks:** Monitoreo automático del estado de salud del contenedor del backend.
-- **Rollback:** Capacidad de revertir a una versión anterior estable en caso de fallos con un solo click.
-
-**Verificar logs desde terminal:**
-```bash
-# Si usas Railway CLI
-railway logs
-```
-
-### 11.10 Troubleshooting Railway
-
-| Problema | Causa | Solución |
-|----------|-------|----------|
-| Build falla en Railway | Dependencias faltantes en `requirements.txt` | Ejecutar `pip freeze > requirements.txt` localmente y subir los cambios |
-| "ModuleNotFoundError" | Importación incorrecta o ruta mal definida | Asegurarse de tener configurado `Root Directory: backend` en Settings de Railway |
-| BD no conecta | Variable `DATABASE_URL` incorrecta | Railway la inyecta automáticamente. Verifica que la variable esté en la pestaña de variables del backend |
-| Puerto incorrecto | El backend no escucha en el puerto de Railway | Asegurarse de que el start command sea `gunicorn -w 4 -b 0.0.0.0:8000 main:app` para que use el puerto configurado |
-| CORS error en frontend | Backend no permite la URL del frontend | Verificar que la URL `https://moodify-one-rho.vercel.app` está correctamente agregada en `allow_origins` de `backend/main.py` |
-
----
-
-## 12. Verificación End-to-End (Producción)
-
-Después de haber desplegado con éxito tanto el frontend en Vercel como el backend en Railway:
-
-```bash
-# 1. Abrir el frontend en tu navegador
-https://moodify-one-rho.vercel.app
-
-# 2. Verificar que se cargan los datos correctamente
-# Ir a Herramientas de Desarrollador (F12) -> pestaña Network (Red)
-# Las peticiones a "https://api-moodify.railway.app" deben responder con status 200
-
-# 3. Verificar que los gráficos cargan
-# Dashboard: KPIs visibles
-# Gráficos: Recharts renderiza correctamente
-# Catálogo: tabla con canciones
-
-# 4. Console: no debe haber errores rojos (solo warnings OK)
-```
-
----
-
-## 13. Estructura de Carpetas Esperada
-
-Después de la instalación, tu carpeta debe verse así:
-
-```
-Moodify/
-├── backend/
-│   ├── .venv/                 ← Entorno virtual Python
-│   ├── main.py
-│   ├── database.py
-│   ├── models.py
-│   ├── schemas.py
-│   ├── requirements.txt
-│   └── routers/
-├── frontend/
-│   ├── node_modules/          ← Paquetes Node.js
-│   ├── src/
-│   ├── public/
-│   ├── vite.config.js
-│   ├── package.json
-│   └── package-lock.json
-├── database/
-│   ├── schema.sql
-│   ├── moodify.backup
-│   └── dataset.csv
-├── docs/
-│   ├── README.md
-│   ├── diccionario-datos.md
-│   ├── documentacion-tecnica.md
-│   ├── manual-usuario.md
-│   ├── guia-instalacion.md
-│   └── casos-prueba.md
-└── README.md
-```
-
----
-
-## 11. Comandos Rápidos (Cheat Sheet)
-
-| Acción | Comando |
-|--------|---------|
-| Activar venv Python (Windows) | `.\.venv\Scripts\Activate.ps1` |
-| Activar venv Python (Mac/Linux) | `source .venv/bin/activate` |
-| Instalar dependencias Python | `pip install -r requirements.txt` |
-| Instalar dependencias Node | `npm install` |
-| Iniciar backend | `uvicorn main:app --reload --host 127.0.0.1 --port 8000` |
-| Iniciar frontend | `npm run dev` |
-| Build frontend prod | `npm run build` |
-| Lint frontend | `npm run lint` |
-| Conectar a PostgreSQL | `psql -U postgres -h localhost -d moodify` |
-| Crear DB | `psql -U postgres -c "CREATE DATABASE moodify;"` |
-| Cargar schema | `psql -U postgres -d moodify -f database/schema.sql` |
-
----
-
-## 12. Obtener Ayuda
-
-Si encuentras problemas:
-
-1. **Revisa los logs:**
-   - Backend: Mira la salida en Terminal donde corre uvicorn
-   - Frontend: Abre DevTools (F12) → Console
-
-2. **Contacta al equipo:**
-   - Backend: Lucas
-   - Frontend: Fede
-   - Documentación: Mauro Di Gallo
-
-3. **Check común:**
-   - ¿PostgreSQL corriendo? ¿Datos cargados? ¿Venv activado? ¿Puertos correctos?
-
----
-
-*Mauro Di Gallo — Visualización / QA / Docs — Moodify · Junio 2026*
+*Mauro Di Gallo — Visualización / QA / Docs — Moodify · Junio 2026 · Actualizado en noviembre de 2026*
