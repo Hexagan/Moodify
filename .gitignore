@@ -1,0 +1,3 @@
+
+# Temporary files draw.io writes while a diagram is open
+*.dtmp
