@@ -6,7 +6,9 @@ from typing import Optional
 import database
 import models
 import schemas
+import storage
 from artist_index import refresh_artists, split_artists
+from routers.media import require_admin
 from recommender import invalidate_catalog
 from song_queries import (
     ESTADOS, estado_expr, deduped_query, genre_pairs, apply_search, rows_to_songs, song_with_details
@@ -116,7 +118,12 @@ def filtrar_canciones(
     return consulta.limit(50).all()
 
 @router.post("", response_model=schemas.CancionRespuesta)
-def crear_cancion(cancion_entrada: schemas.CancionCreate, db: Session = Depends(database.get_db)):
+def crear_cancion(
+    cancion_entrada: schemas.CancionCreate,
+    admin_uid: str = Query(""),
+    db: Session = Depends(database.get_db),
+):
+    require_admin(db, admin_uid)
     nueva_cancion = models.Cancion(**cancion_entrada.dict())
     db.add(nueva_cancion)
     db.commit()
@@ -126,10 +133,16 @@ def crear_cancion(cancion_entrada: schemas.CancionCreate, db: Session = Depends(
     return nueva_cancion
 
 @router.put("/{cancion_id}", response_model=schemas.CancionRespuesta)
-def modificar_cancion(cancion_id: int, cancion_actualizada: schemas.CancionCreate, db: Session = Depends(database.get_db)):
+def modificar_cancion(
+    cancion_id: int,
+    cancion_actualizada: schemas.CancionCreate,
+    admin_uid: str = Query(""),
+    db: Session = Depends(database.get_db),
+):
+    require_admin(db, admin_uid)
     cancion = db.query(models.Cancion).filter(models.Cancion.id == cancion_id).first()
     if not cancion:
-        return {"error": "Canción no encontrada"}
+        raise HTTPException(status_code=404, detail="Canción no encontrada")
 
     previous_artists = split_artists(cancion.artists)
     for campo, valor in cancion_actualizada.dict().items():
@@ -142,14 +155,33 @@ def modificar_cancion(cancion_id: int, cancion_actualizada: schemas.CancionCreat
     return cancion
 
 @router.delete("/{cancion_id}")
-def eliminar_cancion(cancion_id: int, db: Session = Depends(database.get_db)):
+def eliminar_cancion(cancion_id: int, admin_uid: str = Query(""), db: Session = Depends(database.get_db)):
+    require_admin(db, admin_uid)
     cancion = db.query(models.Cancion).filter(models.Cancion.id == cancion_id).first()
     if not cancion:
-        return {"error": "Canción no encontrada"}
+        raise HTTPException(status_code=404, detail="Canción no encontrada")
+
+    # Comments, likes and history reference songs without ON DELETE CASCADE, so the database
+    # refuses to delete a song anyone interacted with: remove those rows first.
+    for model in (models.Comment, models.SongLike, models.SongHistory, models.PlaylistSong):
+        db.query(model).filter(model.song_id == cancion_id).delete(synchronize_session=False)
+
+    # The media cache (and any cover or preview uploaded from the ABM) is per track; keep it
+    # while another genre row of the same song still uses it.
+    uploads = []
+    shared = db.query(models.Cancion.id).filter(
+        models.Cancion.track_id == cancion.track_id, models.Cancion.id != cancion_id
+    ).first()
+    media = None if shared else db.get(models.SongMedia, cancion.track_id)
+    if media is not None:
+        uploads = [media.thumbnail_url, media.preview_url]
+        db.delete(media)
 
     removed_artists = split_artists(cancion.artists)
     db.delete(cancion)
     db.commit()
+    for url in uploads:
+        storage.delete(url)  # ignores external links (Spotify, iTunes, Deezer)
     refresh_artists(db, removed_artists)
     invalidate_catalog()
     return {"mensaje": f"La canción con ID {cancion_id} fue eliminada con éxito"}

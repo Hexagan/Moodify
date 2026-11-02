@@ -5,10 +5,13 @@ import SongSearchSelect from "./SongSearchSelect";
 import { Trash, XCircle, ExclamationTriangle } from "react-bootstrap-icons";
 
 import { eliminarCancion } from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 
 const MOTIVOS = ["Duplicada", "Datos incorrectos", "Fuera de alcance del estudio", "Otro"];
 
 function EliminarCancion() {
+
+    const { user } = useAuth();
 
     const [selectedSong, setSelectedSong] = useState(null);
     const [motivo, setMotivo] = useState("");
@@ -23,14 +26,14 @@ function EliminarCancion() {
         }
 
         try {
-            await eliminarCancion(selectedSong.id);
+            await eliminarCancion(selectedSong.id, user?.uid);
             setFeedback({ type:"success", text:"Canción eliminada correctamente." });
             setSelectedSong(null);
             setConfirmed(false);
             setMotivo("");
         } catch (err) {
             console.error("Error al eliminar canción:", err);
-            setFeedback({ type:"error", text:"Ocurrió un error al eliminar la canción." });
+            setFeedback({ type:"error", text:`No se pudo eliminar la canción: ${err.message}` });
         }
     }
 

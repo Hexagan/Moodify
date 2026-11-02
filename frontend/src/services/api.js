@@ -161,8 +161,9 @@ export async function searchCanciones(query) {
     });
 }
 
-export async function crearCancion(data) {
-    const res = await fetch(`${BASE_URL}/canciones`, {
+// Catalogue changes are admin-only; the backend checks adminUid's role.
+export async function crearCancion(data, adminUid) {
+    const res = await fetch(`${BASE_URL}/canciones?admin_uid=${encodeURIComponent(adminUid || "")}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
@@ -170,8 +171,8 @@ export async function crearCancion(data) {
     return jsonOrThrow(res);
 }
 
-export async function modificarCancion(id, data) {
-    const res = await fetch(`${BASE_URL}/canciones/${id}`, {
+export async function modificarCancion(id, data, adminUid) {
+    const res = await fetch(`${BASE_URL}/canciones/${id}?admin_uid=${encodeURIComponent(adminUid || "")}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
@@ -179,11 +180,11 @@ export async function modificarCancion(id, data) {
     return jsonOrThrow(res);
 }
 
-export async function eliminarCancion(id) {
-    const res = await fetch(`${BASE_URL}/canciones/${id}`, {
+export async function eliminarCancion(id, adminUid) {
+    const res = await fetch(`${BASE_URL}/canciones/${id}?admin_uid=${encodeURIComponent(adminUid || "")}`, {
         method: "DELETE"
     });
-    return res.json();
+    return jsonOrThrow(res);
 }
 
 function absolutizePhoto(url) {

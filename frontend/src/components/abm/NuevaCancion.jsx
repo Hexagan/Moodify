@@ -14,7 +14,7 @@ function NuevaCancion() {
     async function handleSubmit(payload, media) {
         setSaving(true);
         try {
-            const song = await crearCancion(payload);
+            const song = await crearCancion(payload, user?.uid);
             try {
                 await saveSongMedia(song.track_id, user.uid, media);
                 setFeedback({ type:"success", text:"Canción agregada correctamente." });

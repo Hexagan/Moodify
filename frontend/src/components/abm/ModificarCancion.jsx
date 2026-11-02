@@ -24,7 +24,7 @@ function ModificarCancion({ presetSong }) {
     async function handleSubmit(payload, media) {
         setSaving(true);
         try {
-            const updated = await modificarCancion(selectedSong.id, payload);
+            const updated = await modificarCancion(selectedSong.id, payload, user?.uid);
             try {
                 await saveSongMedia(updated.track_id, user.uid, media);
                 setFeedback({ type:"success", text:"Canción modificada correctamente." });
