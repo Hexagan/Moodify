@@ -249,7 +249,13 @@ export async function sendFriendRequest(requesterUid, addresseeUid) {
     const res = await fetch(`${BASE_URL}/amigos/solicitar?requester_uid=${requesterUid}&addressee_uid=${addresseeUid}`, {
         method: "POST"
     });
-    return res.json();
+    return jsonOrThrow(res);
+}
+
+// { status: "none" | "sent" | "received" | "friends", friendship_id }, from uid's point of view.
+export async function getFriendshipStatus(uid, otherUid) {
+    const res = await fetch(`${BASE_URL}/amigos/estado/${encodeURIComponent(uid)}/${encodeURIComponent(otherUid)}`);
+    return jsonOrThrow(res);
 }
 
 export async function getPendingRequests(uid) {

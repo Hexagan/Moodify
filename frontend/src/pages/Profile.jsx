@@ -6,13 +6,13 @@ import Layout from "../components/layout/Layout";
 import { useAuth } from "../context/AuthContext";
 import {
     getUser, updateUser, getFriends, sendFriendRequest, uploadUserPhoto,
-    getPendingRequests, acceptFriendRequest, rejectFriendRequest,
+    getPendingRequests, acceptFriendRequest, rejectFriendRequest, getFriendshipStatus,
     getUserLikes, updateLikeNote, unlikeSong
 } from "../services/api";
 import SongCover from "../components/common/SongCover";
 import UserPlaylists from "../components/playlists/UserPlaylists";
 
-import { PersonCircle, ShieldCheck, MusicNoteBeamed, PeopleFill, PencilSquare, Check2, Globe, LockFill, CameraFill, BoxArrowRight, X, HeartFill, CollectionPlay } from "react-bootstrap-icons";
+import { PersonCircle, ShieldCheck, MusicNoteBeamed, PeopleFill, PencilSquare, Check2, Globe, LockFill, CameraFill, BoxArrowRight, X, HeartFill, CollectionPlay, PersonPlusFill, PersonCheckFill, PersonDashFill, HourglassSplit } from "react-bootstrap-icons";
 
 function PrivacyToggle({ value, onChange }) {
     return (
@@ -41,6 +41,12 @@ function Profile() {
     const [avatarPreview, setAvatarPreview] = useState(null);
     const avatarInputRef = useRef(null);
     const [pendingRequests, setPendingRequests] = useState([]);
+    // The signed-in user's relationship with this profile: { status, friendship_id }. Tagged with
+    // the profile's uid so a result for the previously viewed profile is never shown here.
+    const [friendshipFor, setFriendshipFor] = useState(null);
+    const friendship = friendshipFor?.uid === uid ? friendshipFor : null;
+    const setFriendship = (next) => setFriendshipFor({ ...next, uid });
+    const [friendBusy, setFriendBusy] = useState(false);
     const [likes, setLikes] = useState([]);
     const likesListRef = useRef(null);
 
@@ -78,6 +84,9 @@ function Profile() {
         if (isOwnProfile) {
             getPendingRequests(uid).then(setPendingRequests);
         }
+        if (user && !isOwnProfile) {
+            getFriendshipStatus(user.uid, uid).then((res) => setFriendshipFor({ ...res, uid })).catch(() => {});
+        }
     }, [uid, isOwnProfile]);
 
     async function handleSave() {
@@ -89,10 +98,53 @@ function Profile() {
         setTimeout(() => setFeedback(null), 3000);
     }
 
-    async function handleAddFriend() {
-        await sendFriendRequest(user.uid, uid);
-        setFeedback({ type: "success", text: "Solicitud de amistad enviada." });
+    function flash(type, text) {
+        setFeedback({ type, text });
         setTimeout(() => setFeedback(null), 3000);
+    }
+
+    // Wraps each friend action so the buttons can't be double-clicked mid-request.
+    async function friendAction(action, successText) {
+        setFriendBusy(true);
+        try {
+            await action();
+            flash("success", successText);
+        } catch {
+            flash("error", "No se pudo completar la acción. Probá de nuevo.");
+        } finally {
+            setFriendBusy(false);
+        }
+    }
+
+    function handleAddFriend() {
+        return friendAction(async () => {
+            const res = await sendFriendRequest(user.uid, uid);
+            setFriendship({ status: res.status, friendship_id: res.friendship_id });
+        }, "Solicitud de amistad enviada.");
+    }
+
+    function handleCancelRequest() {
+        return friendAction(async () => {
+            await rejectFriendRequest(friendship.friendship_id);
+            setFriendship({ status: "none", friendship_id: null });
+        }, "Solicitud cancelada.");
+    }
+
+    function handleAcceptFromProfile() {
+        return friendAction(async () => {
+            await acceptFriendRequest(friendship.friendship_id);
+            setFriendship({ ...friendship, status: "friends" });
+            getFriends(uid).then(setFriends);
+        }, "Ahora son amigos.");
+    }
+
+    function handleRemoveFriend() {
+        if (!window.confirm(`¿Eliminar a ${profile?.display_name || "este usuario"} de tus amigos?`)) return;
+        return friendAction(async () => {
+            await rejectFriendRequest(friendship.friendship_id);
+            setFriendship({ status: "none", friendship_id: null });
+            getFriends(uid).then(setFriends);
+        }, "Amigo eliminado.");
     }
 
     async function handleAcceptRequest(requestId) {
@@ -214,10 +266,40 @@ function Profile() {
                                     <BoxArrowRight /> Cerrar sesión
                                 </button>
                             </>
-                        ) : user && (
-                            <button className="add-friend-btn" onClick={handleAddFriend}>
-                                <PeopleFill /> Agregar amigo
-                            </button>
+                        ) : user && friendship && (
+                            <>
+                                {friendship.status === "none" && (
+                                    <button className="add-friend-btn" onClick={handleAddFriend} disabled={friendBusy}>
+                                        <PersonPlusFill /> Agregar amigo
+                                    </button>
+                                )}
+                                {friendship.status === "sent" && (
+                                    <>
+                                        <span className="friend-status"><HourglassSplit /> Solicitud enviada</span>
+                                        <button className="remove-friend-btn" onClick={handleCancelRequest} disabled={friendBusy}>
+                                            <X /> Cancelar
+                                        </button>
+                                    </>
+                                )}
+                                {friendship.status === "received" && (
+                                    <>
+                                        <button className="add-friend-btn" onClick={handleAcceptFromProfile} disabled={friendBusy}>
+                                            <Check2 /> Aceptar solicitud
+                                        </button>
+                                        <button className="remove-friend-btn" onClick={handleCancelRequest} disabled={friendBusy}>
+                                            <X /> Rechazar
+                                        </button>
+                                    </>
+                                )}
+                                {friendship.status === "friends" && (
+                                    <>
+                                        <span className="friend-status friends"><PersonCheckFill /> Amigos</span>
+                                        <button className="remove-friend-btn" onClick={handleRemoveFriend} disabled={friendBusy}>
+                                            <PersonDashFill /> Eliminar amigo
+                                        </button>
+                                    </>
+                                )}
+                            </>
                         )}
                     </div>
 
