@@ -3,7 +3,7 @@
 **Moodify** es una aplicación web para explorar música según su perfil emocional. A partir de un dataset público de Spotify con más de 113.000 canciones, permite recorrer el catálogo por valencia, energía y género, descubrir canciones en un mapa emocional, analizar géneros con gráficos interactivos y recibir recomendaciones personales.
 
 🌐 **En producción:** https://moodify-one-rho.vercel.app  
-📚 **API:** https://moodify-api-roan.vercel.app/docs
+📚 **API:** https://moodify-api-roan.vercel.app/docs  
 📋 **Presentación:** https://canva.link/qsw35t0tocuh3nl
 
 ---
